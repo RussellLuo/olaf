@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -15,15 +14,18 @@ import (
 	"github.com/RussellLuo/olaf/admin"
 )
 
-func (c *Caddie) reloadCaddy(data *Data) error {
+func buildCaddyConfig(config HTTPConfig, data *Data) map[string]interface{} {
 	routes := buildCaddyRoutes(data)
-	config := buildCaddyConfig("srv0", ":8080", []string{"localhost"}, routes)
 
-	err := setCaddyConfig(config)
-	if err != nil {
-		log.Printf("new config: %#v\n", config)
+	return map[string]interface{}{
+		"apps": map[string]interface{}{
+			"http": map[string]interface{}{
+				"http_port":  config.HTTPPort,
+				"https_port": config.HTTPSPort,
+				"servers":    buildServers(config.Servers, routes),
+			},
+		},
 	}
-	return err
 }
 
 func buildCaddyRoutes(data *Data) (routes []map[string]interface{}) {
@@ -148,34 +150,43 @@ func reverseProxy(url, expr string) map[string]interface{} {
 	return route
 }
 
-func buildCaddyConfig(serverName, addr string, hosts []string, routes []map[string]interface{}) map[string]interface{} {
-	return map[string]interface{}{
-		"apps": map[string]interface{}{
-			"http": map[string]interface{}{
-				"servers": map[string]interface{}{
-					serverName: map[string]interface{}{
-						"listen": []string{addr},
-						"routes": []map[string]interface{}{
-							{
-								"terminal": true,
-								"match": []map[string]interface{}{
-									{
-										"host": hosts,
-									},
-								},
-								"handle": []map[string]interface{}{
-									{
-										"handler": "subroute",
-										"routes":  routes,
-									},
-								},
-							},
+func buildServers(addrs []string, routes []map[string]interface{}) map[string]interface{} {
+	listenHosts := make(map[string][]string)
+	for _, a := range addrs {
+		s := strings.SplitN(a, ":", 2)
+		host, listen := s[0], ":"+s[1]
+		listenHosts[listen] = append(listenHosts[listen], host)
+	}
+
+	i := 0
+	servers := make(map[string]interface{})
+
+	for listen, hosts := range listenHosts {
+		name := fmt.Sprintf("srv%d", i)
+		i++
+
+		servers[name] = map[string]interface{}{
+			"listen": []string{listen},
+			"routes": []map[string]interface{}{
+				{
+					"terminal": true,
+					"match": []map[string]interface{}{
+						{
+							"host": hosts,
+						},
+					},
+					"handle": []map[string]interface{}{
+						{
+							"handler": "subroute",
+							"routes":  routes,
 						},
 					},
 				},
 			},
-		},
+		}
 	}
+
+	return servers
 }
 
 func setCaddyConfig(config map[string]interface{}) error {

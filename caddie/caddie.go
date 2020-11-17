@@ -28,21 +28,30 @@ type Loader interface {
 	Load(t time.Time) (*Data, error)
 }
 
+type HTTPConfig struct {
+	Servers   []string
+	HTTPPort  int
+	HTTPSPort int
+}
+
 type Caddie struct {
 	loader     Loader
 	interval   time.Duration
 	lastSynced time.Time
 
+	httpConfig HTTPConfig
+
 	stopC chan struct{}
 	exitC chan struct{}
 }
 
-func NewCaddie(loader Loader, interval time.Duration) *Caddie {
+func NewCaddie(loader Loader, interval time.Duration, config HTTPConfig) *Caddie {
 	return &Caddie{
-		loader:   loader,
-		interval: interval,
-		stopC:    make(chan struct{}),
-		exitC:    make(chan struct{}),
+		loader:     loader,
+		interval:   interval,
+		httpConfig: config,
+		stopC:      make(chan struct{}),
+		exitC:      make(chan struct{}),
 	}
 }
 
@@ -78,4 +87,14 @@ exit:
 func (c *Caddie) Stop() {
 	close(c.stopC)
 	<-c.exitC
+}
+
+func (c *Caddie) reloadCaddy(data *Data) error {
+	config := buildCaddyConfig(c.httpConfig, data)
+
+	err := setCaddyConfig(config)
+	if err != nil {
+		log.Printf("new config: %#v\n", config)
+	}
+	return err
 }
