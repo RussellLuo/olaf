@@ -96,7 +96,9 @@ type TenantCanaryPlugin struct {
 }
 
 type TenantCanaryConfig struct {
-	UpstreamURL string `json:"upstream_url"`
+	UpstreamURL         string `json:"upstream_url"`
+	UpstreamDialTimeout string `json:"upstream_dial_timeout"`
+	UpstreamMaxRequests int    `json:"upstream_max_requests"`
 
 	// query, path, header, body
 	TenantIDLocation string        `json:"tenant_id_location"`

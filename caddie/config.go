@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -101,7 +102,12 @@ func buildSubRoutes(r *admin.Route, s map[string]*admin.Service, p map[string]*a
 		routes = append(routes, rr)
 	}
 
-	routes = append(routes, reverseProxy(service.URL, ""))
+	routes = append(routes, reverseProxy(
+		service.URL,
+		service.DialTimeout,
+		service.MaxRequests,
+		"",
+	))
 
 	return
 }
@@ -121,7 +127,12 @@ func canaryReverseProxy(p *admin.TenantCanaryPlugin) (routes []map[string]interf
 	if len(p.Config.TenantIDList) > 0 {
 		csv := strings.Replace(fmt.Sprint(p.Config.TenantIDList), " ", ",", -1)
 		expr := fmt.Sprintf("%s in %s", idVar, csv)
-		routes = append(routes, reverseProxy(p.Config.UpstreamURL, expr))
+		routes = append(routes, reverseProxy(
+			p.Config.UpstreamURL,
+			p.Config.UpstreamDialTimeout,
+			p.Config.UpstreamMaxRequests,
+			expr,
+		))
 	}
 
 	start := p.Config.TenantIDRange.Start
@@ -131,21 +142,37 @@ func canaryReverseProxy(p *admin.TenantCanaryPlugin) (routes []map[string]interf
 			"%s >=%d && %s <= %d",
 			idVar, start,
 			idVar, end)
-		routes = append(routes, reverseProxy(p.Config.UpstreamURL, expr))
+		routes = append(routes, reverseProxy(
+			p.Config.UpstreamURL,
+			p.Config.UpstreamDialTimeout,
+			p.Config.UpstreamMaxRequests,
+			expr,
+		))
 	}
 
 	return
 }
 
-func reverseProxy(url, expr string) map[string]interface{} {
+func reverseProxy(url, dialTimeout string, maxRequests int, expr string) map[string]interface{} {
+	var timeout time.Duration
+	if dialTimeout != "" {
+		var err error
+		timeout, err = time.ParseDuration(dialTimeout)
+		if err != nil {
+			log.Printf("parse dial_timeout err: %v\n", err)
+		}
+	}
+
 	route := map[string]interface{}{
 		"handle": []map[string]interface{}{
 			{
 				"handler": "reverse_proxy",
-				"upstreams": []map[string]string{
-					{
-						"dial": url,
-					},
+				"upstreams": []map[string]interface{}{
+					buildUpstream(url, maxRequests),
+				},
+				"transport": map[string]interface{}{
+					"protocol":     "http",
+					"dial_timeout": timeout,
 				},
 			},
 		},
@@ -160,6 +187,18 @@ func reverseProxy(url, expr string) map[string]interface{} {
 	}
 
 	return route
+}
+
+func buildUpstream(url string, maxRequests int) map[string]interface{} {
+	m := map[string]interface{}{
+		"dial": url,
+	}
+
+	if maxRequests > 0 {
+		m["max_requests"] = maxRequests
+	}
+
+	return m
 }
 
 func buildServers(addrs []string, routes []map[string]interface{}) map[string]interface{} {

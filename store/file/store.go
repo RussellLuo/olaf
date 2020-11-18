@@ -91,6 +91,13 @@ func (s *Store) CreateService(ctx context.Context, svc *admin.Service) (err erro
 		return
 	}
 
+	if svc.DialTimeout != "" {
+		if _, e := time.ParseDuration(svc.DialTimeout); e != nil {
+			err = admin.ErrBadRequest
+			return
+		}
+	}
+
 	s.data.Services[svc.Name] = svc
 	return
 }
@@ -207,6 +214,13 @@ func (s *Store) CreateTenantCanaryPlugin(ctx context.Context, p *admin.TenantCan
 	if name == "" {
 		err = admin.ErrBadRequest
 		return
+	}
+
+	if p.Config.UpstreamDialTimeout != "" {
+		if _, e := time.ParseDuration(p.Config.UpstreamDialTimeout); e != nil {
+			err = admin.ErrBadRequest
+			return
+		}
 	}
 
 	if _, ok := s.data.Plugins[name]; ok {
