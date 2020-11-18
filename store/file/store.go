@@ -147,6 +147,12 @@ func (s *Store) CreateRoute(ctx context.Context, route *admin.Route) (err error)
 		return
 	}
 
+	if len(route.Methods)|len(route.Hosts)|len(route.Paths) == 0 {
+		// At least one of methods, hosts or paths, must be provided.
+		err = admin.ErrBadRequest
+		return
+	}
+
 	s.data.Routes[route.Name] = route
 	return
 }

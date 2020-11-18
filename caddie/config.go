@@ -32,19 +32,15 @@ func buildCaddyRoutes(data *Data) (routes []map[string]interface{}) {
 	services := data.Services
 	plugins := data.Plugins
 
-	for _, route := range data.Routes {
+	for _, r := range data.Routes {
 		routes = append(routes, map[string]interface{}{
 			"match": []map[string][]string{
-				{
-					"method": route.Methods,
-					"host":   route.Hosts,
-					"path":   route.Paths,
-				},
+				buildRouteMatcher(r),
 			},
 			"handle": []map[string]interface{}{
 				{
 					"handler": "subroute",
-					"routes":  buildSubRoutes(route, services, plugins),
+					"routes":  buildSubRoutes(r, services, plugins),
 				},
 			},
 		})
@@ -59,6 +55,22 @@ func buildCaddyRoutes(data *Data) (routes []map[string]interface{}) {
 		},
 	})
 	return
+}
+
+func buildRouteMatcher(r *admin.Route) map[string][]string {
+	m := make(map[string][]string)
+
+	if len(r.Methods) != 0 {
+		m["method"] = r.Methods
+	}
+	if len(r.Hosts) != 0 {
+		m["host"] = r.Hosts
+	}
+	if len(r.Paths) != 0 {
+		m["path"] = r.Paths
+	}
+
+	return m
 }
 
 func buildSubRoutes(r *admin.Route, s map[string]*admin.Service, p map[string]*admin.TenantCanaryPlugin) (routes []map[string]interface{}) {
