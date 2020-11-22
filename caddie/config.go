@@ -34,6 +34,11 @@ func buildCaddyRoutes(data *Data) (routes []map[string]interface{}) {
 	plugins := data.Plugins
 
 	for _, r := range data.Routes {
+		if services[r.ServiceName] == nil {
+			log.Printf("service %q of route %q not found", r.ServiceName, r.Name)
+			continue
+		}
+
 		routes = append(routes, map[string]interface{}{
 			"match": []map[string][]string{
 				buildRouteMatcher(r),

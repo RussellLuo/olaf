@@ -15,9 +15,9 @@ var (
 )
 
 type Data struct {
-	Services map[string]*admin.Service            `json:"services"`
-	Routes   map[string]*admin.Route              `json:"routes"`
-	Plugins  map[string]*admin.TenantCanaryPlugin `json:"plugins"`
+	Services map[string]*admin.Service            `json:"services" yaml:"services"`
+	Routes   map[string]*admin.Route              `json:"routes" yaml:"routes"`
+	Plugins  map[string]*admin.TenantCanaryPlugin `json:"plugins" yaml:"plugins"`
 }
 
 type Loader interface {

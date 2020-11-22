@@ -3,11 +3,15 @@ package file
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 	"sync"
 	"time"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/RussellLuo/olaf/admin"
 	"github.com/RussellLuo/olaf/caddie"
@@ -59,9 +63,20 @@ func (s *Store) Load(t time.Time) (*caddie.Data, error) {
 	}
 
 	data := new(caddie.Data)
-	if err := json.Unmarshal(content, data); err != nil {
-		return nil, err
+
+	switch {
+	case strings.HasSuffix(s.filename, ".json"):
+		if err := json.Unmarshal(content, data); err != nil {
+			return nil, err
+		}
+	case strings.HasSuffix(s.filename, ".yaml"):
+		if err := yaml.Unmarshal(content, data); err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf("unsupported file format %s", s.filename)
 	}
+
 	return data, nil
 }
 

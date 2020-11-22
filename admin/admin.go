@@ -65,51 +65,51 @@ type Admin interface {
 }
 
 type Service struct {
-	Name string `json:"name"`
-	URL  string `json:"url"`
+	Name string `json:"name" yaml:"name"`
+	URL  string `json:"url" yaml:"url"`
 
-	DialTimeout string `json:"dial_timeout"`
-	MaxRequests int    `json:"max_requests"`
+	DialTimeout string `json:"dial_timeout" yaml:"dial_timeout"`
+	MaxRequests int    `json:"max_requests" yaml:"max_requests"`
 }
 
 type Route struct {
-	ServiceName string `json:"service_name"`
+	ServiceName string `json:"service_name" yaml:"service_name"`
 
-	Name    string   `json:"name"`
-	Methods []string `json:"methods"`
-	Hosts   []string `json:"hosts"`
-	Paths   []string `json:"paths"`
+	Name    string   `json:"name" yaml:"name"`
+	Methods []string `json:"methods" yaml:"methods"`
+	Hosts   []string `json:"hosts" yaml:"hosts"`
+	Paths   []string `json:"paths" yaml:"paths"`
 
-	StripPrefix string `json:"strip_prefix"`
+	StripPrefix string `json:"strip_prefix" yaml:"strip_prefix"`
 }
 
 type Plugin struct {
-	Service string `json:"service"`
-	Route   string `json:"route"`
-	Enabled bool   `json:"enabled"`
+	Service string `json:"service" yaml:"service"`
+	Route   string `json:"route" yaml:"route"`
+	Enabled bool   `json:"enabled" yaml:"enabled"`
 }
 
 type TenantCanaryPlugin struct {
 	Plugin
 
-	Config TenantCanaryConfig `json:"config"`
+	Config TenantCanaryConfig `json:"config" yaml:"config"`
 }
 
 type TenantCanaryConfig struct {
-	UpstreamURL         string `json:"upstream_url"`
-	UpstreamDialTimeout string `json:"upstream_dial_timeout"`
-	UpstreamMaxRequests int    `json:"upstream_max_requests"`
+	UpstreamURL         string `json:"upstream_url" yaml:"upstream_url"`
+	UpstreamDialTimeout string `json:"upstream_dial_timeout" yaml:"upstream_dial_timeout"`
+	UpstreamMaxRequests int    `json:"upstream_max_requests" yaml:"upstream_max_requests"`
 
 	// query, path, header, body
-	TenantIDLocation string        `json:"tenant_id_location"`
-	TenantIDName     string        `json:"tenant_id_name"`
-	TenantIDList     []int         `json:"tenant_id_list"`
-	TenantIDRange    TenantIDRange `json:"tenant_id_range"`
+	TenantIDLocation string        `json:"tenant_id_location" yaml:"tenant_id_location"`
+	TenantIDName     string        `json:"tenant_id_name" yaml:"tenant_id_name"`
+	TenantIDList     []int         `json:"tenant_id_list" yaml:"tenant_id_list"`
+	TenantIDRange    TenantIDRange `json:"tenant_id_range" yaml:"tenant_id_range"`
 }
 
 type TenantIDRange struct {
-	Start int `json:"start"`
-	End   int `json:"end"`
+	Start int `json:"start" yaml:"start"`
+	End   int `json:"end" yaml:"end"`
 }
 
 func (p *TenantCanaryPlugin) Name() string {
