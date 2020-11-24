@@ -103,7 +103,18 @@ func buildSubRoutes(r *admin.Route, s map[string]*admin.Service, p map[string]*a
 		}
 	}
 
-	for _, rr := range canaryReverseProxy(plugin) {
+	canaryRoutes, canaryFieldInBody := canaryReverseProxy(plugin)
+	if canaryFieldInBody {
+		routes = append(routes, map[string]interface{}{
+			"handle": []map[string]string{
+				{
+					"handler": "request_body_var",
+				},
+			},
+		})
+	}
+
+	for _, rr := range canaryRoutes {
 		routes = append(routes, rr)
 	}
 
@@ -117,15 +128,24 @@ func buildSubRoutes(r *admin.Route, s map[string]*admin.Service, p map[string]*a
 	return
 }
 
-func canaryReverseProxy(p *admin.TenantCanaryPlugin) (routes []map[string]interface{}) {
+func canaryReverseProxy(p *admin.TenantCanaryPlugin) (routes []map[string]interface{}, canaryFieldInBody bool) {
 	if p == nil {
 		return
 	}
 
 	name := p.Config.TenantIDName
-	idVar := fmt.Sprintf("int({http.request.uri.query.%s})", name)
+	if name == "" {
+		return
+	}
 
-	if p.Config.TenantIDLocation != "query" || name == "" {
+	var idVar string
+	switch p.Config.TenantIDLocation {
+	case "query":
+		idVar = fmt.Sprintf("int({http.request.uri.query.%s})", name)
+	case "body":
+		idVar = fmt.Sprintf("int({http.request.body.%s})", name)
+		canaryFieldInBody = true
+	default:
 		return
 	}
 
@@ -145,8 +165,7 @@ func canaryReverseProxy(p *admin.TenantCanaryPlugin) (routes []map[string]interf
 	if start != 0 || end != 0 {
 		expr := fmt.Sprintf(
 			"%s >=%d && %s <= %d",
-			idVar, start,
-			idVar, end)
+			idVar, start, idVar, end)
 		routes = append(routes, reverseProxy(
 			p.Config.UpstreamURL,
 			p.Config.UpstreamDialTimeout,
