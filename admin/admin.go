@@ -81,6 +81,7 @@ type Route struct {
 	Paths   []string `json:"paths" yaml:"paths"`
 
 	StripPrefix string `json:"strip_prefix" yaml:"strip_prefix"`
+	AddPrefix   string `json:"add_prefix" yaml:"add_prefix"`
 }
 
 type Plugin struct {

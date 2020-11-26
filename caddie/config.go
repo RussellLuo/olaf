@@ -80,15 +80,26 @@ func buildRouteMatcher(r *admin.Route) map[string][]string {
 }
 
 func buildSubRoutes(r *admin.Route, s map[string]*admin.Service, p map[string]*admin.TenantCanaryPlugin) (routes []map[string]interface{}) {
-	routes = []map[string]interface{}{
-		{
+	if r.StripPrefix != "" {
+		routes = append(routes, map[string]interface{}{
 			"handle": []map[string]string{
 				{
 					"handler":           "rewrite",
 					"strip_path_prefix": r.StripPrefix,
 				},
 			},
-		},
+		})
+	}
+
+	if r.AddPrefix != "" {
+		routes = append(routes, map[string]interface{}{
+			"handle": []map[string]string{
+				{
+					"handler": "rewrite",
+					"uri":     r.AddPrefix + "{http.request.uri}",
+				},
+			},
+		})
 	}
 
 	service := s[r.ServiceName]
