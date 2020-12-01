@@ -88,8 +88,8 @@ type Plugin struct {
 	Name    string `json:"name" yaml:"name"`
 	Enabled bool   `json:"enabled" yaml:"enabled"`
 
-	Service string `json:"service" yaml:"service"`
-	Route   string `json:"route" yaml:"route"`
+	RouteName   string `json:"route_name" yaml:"route_name"`
+	ServiceName string `json:"service_name" yaml:"service_name"`
 }
 
 type TenantCanaryPlugin struct {

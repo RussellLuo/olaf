@@ -184,12 +184,12 @@ func findAppliedPlugins(ps map[string]*admin.TenantCanaryPlugin, r *admin.Route)
 		}
 
 		switch {
-		case p.Route != "" && p.Service != "":
-			routeServicePlugins[p.Route] = append(routeServicePlugins[p.Route], p)
-		case p.Route != "":
-			routePlugins[p.Route] = append(routePlugins[p.Route], p)
-		case p.Service != "":
-			servicePlugins[p.Service] = append(servicePlugins[p.Service], p)
+		case p.RouteName != "" && p.ServiceName != "":
+			routeServicePlugins[p.RouteName] = append(routeServicePlugins[p.RouteName], p)
+		case p.RouteName != "":
+			routePlugins[p.RouteName] = append(routePlugins[p.RouteName], p)
+		case p.ServiceName != "":
+			servicePlugins[p.ServiceName] = append(servicePlugins[p.ServiceName], p)
 		default:
 			globalPlugins = append(globalPlugins, p)
 		}
