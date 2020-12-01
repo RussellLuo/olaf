@@ -91,7 +91,7 @@ type Plugin struct {
 }
 
 type TenantCanaryPlugin struct {
-	Plugin
+	Plugin `yaml:",inline"`
 
 	Config TenantCanaryConfig `json:"config" yaml:"config"`
 }
@@ -102,10 +102,9 @@ type TenantCanaryConfig struct {
 	UpstreamMaxRequests int    `json:"upstream_max_requests" yaml:"upstream_max_requests"`
 
 	// query, path, header, body
-	TenantIDLocation string        `json:"tenant_id_location" yaml:"tenant_id_location"`
-	TenantIDName     string        `json:"tenant_id_name" yaml:"tenant_id_name"`
-	TenantIDList     []int         `json:"tenant_id_list" yaml:"tenant_id_list"`
-	TenantIDRange    TenantIDRange `json:"tenant_id_range" yaml:"tenant_id_range"`
+	TenantIDLocation  string `json:"tenant_id_location" yaml:"tenant_id_location"`
+	TenantIDName      string `json:"tenant_id_name" yaml:"tenant_id_name"`
+	TenantIDWhitelist string `json:"tenant_id_whitelist" yaml:"tenant_id_whitelist"`
 }
 
 type TenantIDRange struct {

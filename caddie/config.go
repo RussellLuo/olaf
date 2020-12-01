@@ -195,23 +195,8 @@ func canaryReverseProxy(p *admin.TenantCanaryPlugin) (routes []map[string]interf
 		return
 	}
 
-	if len(p.Config.TenantIDList) > 0 {
-		csv := strings.Replace(fmt.Sprint(p.Config.TenantIDList), " ", ",", -1)
-		expr := fmt.Sprintf("%s in %s", idVar, csv)
-		routes = append(routes, reverseProxy(
-			p.Config.UpstreamURL,
-			p.Config.UpstreamDialTimeout,
-			p.Config.UpstreamMaxRequests,
-			expr,
-		))
-	}
-
-	start := p.Config.TenantIDRange.Start
-	end := p.Config.TenantIDRange.End
-	if start != 0 || end != 0 {
-		expr := fmt.Sprintf(
-			"%s >=%d && %s <= %d",
-			idVar, start, idVar, end)
+	if p.Config.TenantIDWhitelist != "" {
+		expr := strings.ReplaceAll(p.Config.TenantIDWhitelist, "$", idVar)
 		routes = append(routes, reverseProxy(
 			p.Config.UpstreamURL,
 			p.Config.UpstreamDialTimeout,
