@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -38,7 +39,9 @@ func buildCaddyRoutes(data *Data) (routes []map[string]interface{}) {
 	services := data.Services
 	plugins := data.Plugins
 
-	for _, r := range data.Routes {
+	// Build the routes in alphabetical order of the their names.
+	// The route that occurs first has a higher priority.
+	for _, r := range sortRoutes(data.Routes) {
 		if services[r.ServiceName] == nil {
 			log.Printf("service %q of route %q not found", r.ServiceName, r.Name)
 			continue
@@ -63,6 +66,19 @@ func buildCaddyRoutes(data *Data) (routes []map[string]interface{}) {
 			},
 		},
 	})
+	return
+}
+
+// sortRoutes sorts the given routes in alphabetical order of the their names.
+func sortRoutes(r map[string]*admin.Route) (routes []*admin.Route) {
+	for _, route := range r {
+		routes = append(routes, route)
+	}
+
+	sort.Slice(routes, func(i, j int) bool {
+		return routes[i].Name < routes[i].Name
+	})
+
 	return
 }
 
