@@ -85,9 +85,11 @@ type Route struct {
 }
 
 type Plugin struct {
+	Name    string `json:"name" yaml:"name"`
+	Enabled bool   `json:"enabled" yaml:"enabled"`
+
 	Service string `json:"service" yaml:"service"`
 	Route   string `json:"route" yaml:"route"`
-	Enabled bool   `json:"enabled" yaml:"enabled"`
 }
 
 type TenantCanaryPlugin struct {
@@ -110,19 +112,4 @@ type TenantCanaryConfig struct {
 type TenantIDRange struct {
 	Start int `json:"start" yaml:"start"`
 	End   int `json:"end" yaml:"end"`
-}
-
-func (p *TenantCanaryPlugin) Name() string {
-	if p == nil {
-		return ""
-	}
-
-	if p.Route != "" {
-		return PluginTenantCanary + "@" + p.Route
-	}
-	if p.Service != "" {
-		return PluginTenantCanary + "@" + p.Service
-	}
-
-	return ""
 }

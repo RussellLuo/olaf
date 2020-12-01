@@ -139,14 +139,11 @@ func buildSubRoutes(r *admin.Route, s map[string]*admin.Service, p map[string]*a
 
 	service := s[r.ServiceName]
 
-	// Use the route-level plugin first, if any.
-	plugin, ok := p[admin.PluginTenantCanary+"@"+r.Name]
-	if !ok || !plugin.Enabled {
-		// Then use the service-level plugin.
-		plugin, ok = p[admin.PluginTenantCanary+"@"+service.Name]
-		if !ok || !plugin.Enabled {
-			plugin = nil
-		}
+	var plugin *admin.TenantCanaryPlugin
+	plugins := findAppliedPlugins(p, r)
+	if len(plugins) > 0 {
+		// For simplicity, only use the first plugin now.
+		plugin = plugins[0]
 	}
 
 	canaryRoutes, canaryFieldInBody := canaryReverseProxy(plugin)
@@ -172,6 +169,45 @@ func buildSubRoutes(r *admin.Route, s map[string]*admin.Service, p map[string]*a
 	))
 
 	return
+}
+
+// findAppliedPlugins finds the plugins that have been applied to the given route.
+func findAppliedPlugins(ps map[string]*admin.TenantCanaryPlugin, r *admin.Route) []*admin.TenantCanaryPlugin {
+	routeServicePlugins := make(map[string][]*admin.TenantCanaryPlugin)
+	routePlugins := make(map[string][]*admin.TenantCanaryPlugin)
+	servicePlugins := make(map[string][]*admin.TenantCanaryPlugin)
+	var globalPlugins []*admin.TenantCanaryPlugin
+
+	for _, p := range ps {
+		if !p.Enabled {
+			continue
+		}
+
+		switch {
+		case p.Route != "" && p.Service != "":
+			routeServicePlugins[p.Route] = append(routeServicePlugins[p.Route], p)
+		case p.Route != "":
+			routePlugins[p.Route] = append(routePlugins[p.Route], p)
+		case p.Service != "":
+			servicePlugins[p.Service] = append(servicePlugins[p.Service], p)
+		default:
+			globalPlugins = append(globalPlugins, p)
+		}
+	}
+
+	// The plugin precedence follows https://docs.konghq.com/2.0.x/admin-api/#precedence
+	plugins, ok := routeServicePlugins[r.Name]
+	if !ok {
+		plugins, ok = routePlugins[r.Name]
+		if !ok {
+			plugins, ok = servicePlugins[r.ServiceName]
+			if !ok && len(globalPlugins) > 0 {
+				plugins = globalPlugins
+			}
+		}
+	}
+
+	return plugins
 }
 
 func canaryReverseProxy(p *admin.TenantCanaryPlugin) (routes []map[string]interface{}, canaryFieldInBody bool) {
