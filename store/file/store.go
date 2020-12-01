@@ -70,7 +70,7 @@ func (s *Store) Load(t time.Time) (*caddie.Data, error) {
 			return nil, err
 		}
 	case strings.HasSuffix(s.filename, ".yaml"):
-		if err := yaml.Unmarshal(content, data); err != nil {
+		if err := s.loadFromYAML(content, data); err != nil {
 			return nil, err
 		}
 	default:
@@ -78,6 +78,25 @@ func (s *Store) Load(t time.Time) (*caddie.Data, error) {
 	}
 
 	return data, nil
+}
+
+func (s *Store) loadFromYAML(content []byte, data *caddie.Data) error {
+	if err := yaml.Unmarshal(content, data); err != nil {
+		return err
+	}
+
+	// Fill in the name fields omitted in the YAML file.
+	for name, s := range data.Services {
+		s.Name = name
+	}
+	for name, r := range data.Routes {
+		r.Name = name
+	}
+	for name, p := range data.Plugins {
+		p.Name = name
+	}
+
+	return nil
 }
 
 func (s *Store) save() error {
