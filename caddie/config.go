@@ -9,10 +9,15 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/RussellLuo/olaf/admin"
+)
+
+var (
+	reRegexpPath = regexp.MustCompile(`~(\w+)?:\s*(.+)`)
 )
 
 func buildCaddyConfig(config HTTPConfig, data *Data) map[string]interface{} {
@@ -40,9 +45,7 @@ func buildCaddyRoutes(data *Data) (routes []map[string]interface{}) {
 		}
 
 		routes = append(routes, map[string]interface{}{
-			"match": []map[string][]string{
-				buildRouteMatcher(r),
-			},
+			"match": buildRouteMatches(r),
 			"handle": []map[string]interface{}{
 				{
 					"handler": "subroute",
@@ -63,20 +66,52 @@ func buildCaddyRoutes(data *Data) (routes []map[string]interface{}) {
 	return
 }
 
-func buildRouteMatcher(r *admin.Route) map[string][]string {
-	m := make(map[string][]string)
+func buildRouteMatches(r *admin.Route) (matches []map[string]interface{}) {
+	// Differentiate regexp paths from normal paths
+	var paths []string
+	rePaths := make(map[string]string)
+	for _, p := range r.Paths {
+		result := reRegexpPath.FindStringSubmatch(p)
+		if len(result) > 0 {
+			name, path := result[1], result[2]
+			rePaths[path] = name // We assume that name is globally unique if non-empty
+		} else {
+			paths = append(paths, p)
+		}
+	}
 
-	if len(r.Methods) != 0 {
-		m["method"] = r.Methods
-	}
-	if len(r.Hosts) != 0 {
-		m["host"] = r.Hosts
-	}
-	if len(r.Paths) != 0 {
-		m["path"] = r.Paths
+	// Build a match for normal paths
+	if len(paths) > 0 {
+		m := map[string]interface{}{
+			"path": paths,
+		}
+		if len(r.Methods) > 0 {
+			m["method"] = r.Methods
+		}
+		if len(r.Hosts) > 0 {
+			m["host"] = r.Hosts
+		}
+		matches = append(matches, m)
 	}
 
-	return m
+	// Build matches for regexp paths
+	for p, n := range rePaths {
+		m := map[string]interface{}{
+			"path_regexp": map[string]string{
+				"name":    n,
+				"pattern": p,
+			},
+		}
+		if len(r.Methods) > 0 {
+			m["method"] = r.Methods
+		}
+		if len(r.Hosts) > 0 {
+			m["host"] = r.Hosts
+		}
+		matches = append(matches, m)
+	}
+
+	return
 }
 
 func buildSubRoutes(r *admin.Route, s map[string]*admin.Service, p map[string]*admin.TenantCanaryPlugin) (routes []map[string]interface{}) {
