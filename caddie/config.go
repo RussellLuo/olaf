@@ -316,6 +316,37 @@ func buildServers(addrs []string, routes []map[string]interface{}) map[string]in
 		listenHosts[listen] = append(listenHosts[listen], host)
 	}
 
+	buildRoute := func(hosts []string) map[string]interface{} {
+		r := map[string]interface{}{
+			"handle": []map[string]interface{}{
+				{
+					"handler": "subroute",
+					"routes":  routes,
+				},
+			},
+		}
+
+		matchAnyHost := false
+		for _, h := range hosts {
+			if h == "" {
+				// Empty host indicates any host will match.
+				matchAnyHost = true
+				break
+			}
+		}
+
+		if !matchAnyHost {
+			r["match"] = []map[string]interface{}{
+				{
+					"host": hosts,
+				},
+			}
+			r["terminal"] = true
+		}
+
+		return r
+	}
+
 	i := 0
 	servers := make(map[string]interface{})
 
@@ -324,22 +355,12 @@ func buildServers(addrs []string, routes []map[string]interface{}) map[string]in
 		i++
 
 		servers[name] = map[string]interface{}{
+			"automatic_https": map[string]interface{}{
+				"disable": true,
+			},
 			"listen": []string{listen},
 			"routes": []map[string]interface{}{
-				{
-					"terminal": true,
-					"match": []map[string]interface{}{
-						{
-							"host": hosts,
-						},
-					},
-					"handle": []map[string]interface{}{
-						{
-							"handler": "subroute",
-							"routes":  routes,
-						},
-					},
-				},
+				buildRoute(hosts),
 			},
 		}
 	}

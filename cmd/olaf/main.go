@@ -26,7 +26,7 @@ var (
 func main() {
 	flag.StringVar(&httpAddr, "addr", ":2020", "HTTP listen address")
 	flag.StringVar(&dataFile, "file", "./olaf.json", "JSON data file")
-	flag.StringVar(&servers, "caddy.servers", "localhost:8080", "Server addresses (comma-separated)")
+	flag.StringVar(&servers, "caddy.servers", ":8080", "Server addresses (comma-separated)")
 	flag.IntVar(&httpPort, "caddy.http", 80, "HTTP port")
 	flag.IntVar(&httpsPort, "caddy.https", 443, "HTTPS port")
 	flag.Parse()
