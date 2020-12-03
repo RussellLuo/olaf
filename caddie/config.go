@@ -39,8 +39,8 @@ func buildCaddyRoutes(data *Data) (routes []map[string]interface{}) {
 	services := data.Services
 	plugins := data.Plugins
 
-	// Build the routes in alphabetical order of the their names.
-	// The route that occurs first has a higher priority.
+	// Build the routes from highest priority to lowest.
+	// The route that has a higher priority will be matched earlier.
 	for _, r := range sortRoutes(data.Routes) {
 		if services[r.ServiceName] == nil {
 			log.Printf("service %q of route %q not found", r.ServiceName, r.Name)
@@ -69,14 +69,14 @@ func buildCaddyRoutes(data *Data) (routes []map[string]interface{}) {
 	return
 }
 
-// sortRoutes sorts the given routes in alphabetical order of the their names.
+// sortRoutes sorts the given routes from highest priority to lowest.
 func sortRoutes(r map[string]*admin.Route) (routes []*admin.Route) {
 	for _, route := range r {
 		routes = append(routes, route)
 	}
 
-	sort.Slice(routes, func(i, j int) bool {
-		return routes[i].Name < routes[i].Name
+	sort.SliceStable(routes, func(i, j int) bool {
+		return routes[i].Priority > routes[j].Priority
 	})
 
 	return

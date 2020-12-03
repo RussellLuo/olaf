@@ -75,6 +75,7 @@ type Service struct {
 type Route struct {
 	ServiceName string `json:"service_name" yaml:"service_name"`
 
+	// Route name must be unique.
 	Name    string   `json:"name" yaml:"name"`
 	Methods []string `json:"methods" yaml:"methods"`
 	Hosts   []string `json:"hosts" yaml:"hosts"`
@@ -82,6 +83,9 @@ type Route struct {
 
 	StripPrefix string `json:"strip_prefix" yaml:"strip_prefix"`
 	AddPrefix   string `json:"add_prefix" yaml:"add_prefix"`
+
+	// Routes will be matched from highest priority to lowest.
+	Priority int `json:"priority" yaml:"priority"`
 }
 
 type Plugin struct {
