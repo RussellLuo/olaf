@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
@@ -13,6 +14,10 @@ import (
 )
 
 var (
+	// A special error indicates that the data has not been modified
+	// since the given time.
+	ErrUnmodified = errors.New("data not modified")
+
 	reRegexpPath = regexp.MustCompile(`~(\w+)?:\s*(.+)`)
 )
 

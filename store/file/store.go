@@ -11,14 +11,12 @@ import (
 	"sync"
 	"time"
 
-	"gopkg.in/yaml.v3"
-
 	"github.com/RussellLuo/olaf/admin"
-	"github.com/RussellLuo/olaf/caddie"
+	"github.com/RussellLuo/olaf/config"
 )
 
 type Store struct {
-	data     *caddie.Data
+	data     *config.Data
 	filename string
 
 	mu sync.Mutex
@@ -26,7 +24,7 @@ type Store struct {
 
 func NewStore(filename string) *Store {
 	s := &Store{
-		data: &caddie.Data{
+		data: &config.Data{
 			Services: make(map[string]*admin.Service),
 			Routes:   make(map[string]*admin.Route),
 			Plugins:  make(map[string]*admin.TenantCanaryPlugin),
@@ -44,7 +42,7 @@ func NewStore(filename string) *Store {
 	return s
 }
 
-func (s *Store) Load(t time.Time) (*caddie.Data, error) {
+func (s *Store) Load(t time.Time) (*config.Data, error) {
 	f, err := os.Stat(s.filename)
 	if err != nil {
 		return nil, err
@@ -52,7 +50,7 @@ func (s *Store) Load(t time.Time) (*caddie.Data, error) {
 
 	if !t.IsZero() && !f.ModTime().After(t) {
 		// Not modified, no need to load.
-		return nil, caddie.ErrUnmodified
+		return nil, config.ErrUnmodified
 	}
 
 	log.Printf("Loading data from file %s", s.filename)
@@ -62,7 +60,7 @@ func (s *Store) Load(t time.Time) (*caddie.Data, error) {
 		return nil, err
 	}
 
-	data := new(caddie.Data)
+	data := new(config.Data)
 
 	switch {
 	case strings.HasSuffix(s.filename, ".json"):
@@ -70,7 +68,7 @@ func (s *Store) Load(t time.Time) (*caddie.Data, error) {
 			return nil, err
 		}
 	case strings.HasSuffix(s.filename, ".yaml"):
-		if err := s.loadFromYAML(content, data); err != nil {
+		if err := config.LoadDataFromYAML(content, data); err != nil {
 			return nil, err
 		}
 	default:
@@ -78,25 +76,6 @@ func (s *Store) Load(t time.Time) (*caddie.Data, error) {
 	}
 
 	return data, nil
-}
-
-func (s *Store) loadFromYAML(content []byte, data *caddie.Data) error {
-	if err := yaml.Unmarshal(content, data); err != nil {
-		return err
-	}
-
-	// Fill in the name fields omitted in the YAML file.
-	for name, s := range data.Services {
-		s.Name = name
-	}
-	for name, r := range data.Routes {
-		r.Name = name
-	}
-	for name, p := range data.Plugins {
-		p.Name = name
-	}
-
-	return nil
 }
 
 func (s *Store) save() error {
