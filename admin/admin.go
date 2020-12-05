@@ -6,10 +6,6 @@ import (
 
 //go:generate kokgen ./admin.go Admin
 
-const (
-	PluginTenantCanary = "tenant_canary"
-)
-
 type Admin interface {
 	// @kok(op): POST /services
 	// @kok(body): svc
@@ -103,17 +99,10 @@ type TenantCanaryPlugin struct {
 }
 
 type TenantCanaryConfig struct {
-	UpstreamURL         string `json:"upstream_url" yaml:"upstream_url"`
-	UpstreamDialTimeout string `json:"upstream_dial_timeout" yaml:"upstream_dial_timeout"`
-	UpstreamMaxRequests int    `json:"upstream_max_requests" yaml:"upstream_max_requests"`
+	UpstreamServiceName string `json:"upstream_service_name" yaml:"upstream_service_name"`
 
 	// query, path, header, body
 	TenantIDLocation  string `json:"tenant_id_location" yaml:"tenant_id_location"`
 	TenantIDName      string `json:"tenant_id_name" yaml:"tenant_id_name"`
 	TenantIDWhitelist string `json:"tenant_id_whitelist" yaml:"tenant_id_whitelist"`
-}
-
-type TenantIDRange struct {
-	Start int `json:"start" yaml:"start"`
-	End   int `json:"end" yaml:"end"`
 }

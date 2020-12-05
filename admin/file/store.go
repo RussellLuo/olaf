@@ -223,13 +223,6 @@ func (s *Store) DeleteRoute(ctx context.Context, name string) (err error) {
 func (s *Store) CreateTenantCanaryPlugin(ctx context.Context, p *admin.TenantCanaryPlugin) (plugin *admin.TenantCanaryPlugin, err error) {
 	defer s.lockUnlock(&err)()
 
-	if p.Config.UpstreamDialTimeout != "" {
-		if _, e := time.ParseDuration(p.Config.UpstreamDialTimeout); e != nil {
-			err = admin.ErrBadRequest
-			return
-		}
-	}
-
 	if _, ok := s.data.Plugins[p.Name]; ok {
 		err = admin.ErrPluginExists
 		return

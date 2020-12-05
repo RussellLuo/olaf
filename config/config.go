@@ -177,7 +177,7 @@ func buildRouteMatches(r *admin.Route) (matches []map[string]interface{}) {
 	return
 }
 
-func buildSubRoutes(r *admin.Route, s map[string]*admin.Service, p map[string]*admin.TenantCanaryPlugin) (routes []map[string]interface{}) {
+func buildSubRoutes(r *admin.Route, services map[string]*admin.Service, p map[string]*admin.TenantCanaryPlugin) (routes []map[string]interface{}) {
 	if r.StripPrefix != "" {
 		routes = append(routes, map[string]interface{}{
 			"handle": []map[string]string{
@@ -200,7 +200,7 @@ func buildSubRoutes(r *admin.Route, s map[string]*admin.Service, p map[string]*a
 		})
 	}
 
-	service := s[r.ServiceName]
+	service := services[r.ServiceName]
 
 	var plugin *admin.TenantCanaryPlugin
 	plugins := findAppliedPlugins(p, r)
@@ -209,7 +209,7 @@ func buildSubRoutes(r *admin.Route, s map[string]*admin.Service, p map[string]*a
 		plugin = plugins[0]
 	}
 
-	canaryRoutes, canaryFieldInBody := canaryReverseProxy(plugin)
+	canaryRoutes, canaryFieldInBody := canaryReverseProxy(plugin, services)
 	if canaryFieldInBody {
 		routes = append(routes, map[string]interface{}{
 			"handle": []map[string]string{
@@ -224,13 +224,7 @@ func buildSubRoutes(r *admin.Route, s map[string]*admin.Service, p map[string]*a
 		routes = append(routes, rr)
 	}
 
-	routes = append(routes, reverseProxy(
-		service.URL,
-		service.DialTimeout,
-		service.MaxRequests,
-		"",
-	))
-
+	routes = append(routes, reverseProxy(service, ""))
 	return
 }
 
@@ -273,8 +267,14 @@ func findAppliedPlugins(ps map[string]*admin.TenantCanaryPlugin, r *admin.Route)
 	return plugins
 }
 
-func canaryReverseProxy(p *admin.TenantCanaryPlugin) (routes []map[string]interface{}, canaryFieldInBody bool) {
+func canaryReverseProxy(p *admin.TenantCanaryPlugin, services map[string]*admin.Service) (routes []map[string]interface{}, canaryFieldInBody bool) {
 	if p == nil {
+		return
+	}
+
+	s := services[p.Config.UpstreamServiceName]
+	if s == nil {
+		log.Printf("upstream service %q of plugin %q not found", p.Config.UpstreamServiceName, p.Name)
 		return
 	}
 
@@ -296,24 +296,19 @@ func canaryReverseProxy(p *admin.TenantCanaryPlugin) (routes []map[string]interf
 
 	if p.Config.TenantIDWhitelist != "" {
 		expr := strings.ReplaceAll(p.Config.TenantIDWhitelist, "$", idVar)
-		routes = append(routes, reverseProxy(
-			p.Config.UpstreamURL,
-			p.Config.UpstreamDialTimeout,
-			p.Config.UpstreamMaxRequests,
-			expr,
-		))
+		routes = append(routes, reverseProxy(s, expr))
 	}
 
 	return
 }
 
-func reverseProxy(url, dialTimeout string, maxRequests int, expr string) map[string]interface{} {
+func reverseProxy(s *admin.Service, expr string) map[string]interface{} {
 	var timeout time.Duration
-	if dialTimeout != "" {
+	if s.DialTimeout != "" {
 		var err error
-		timeout, err = time.ParseDuration(dialTimeout)
+		timeout, err = time.ParseDuration(s.DialTimeout)
 		if err != nil {
-			log.Printf("parse dial_timeout err: %v\n", err)
+			log.Printf("parse dial_timeout of service %q err: %v\n", s.Name, err)
 		}
 	}
 
@@ -322,7 +317,7 @@ func reverseProxy(url, dialTimeout string, maxRequests int, expr string) map[str
 			{
 				"handler": "reverse_proxy",
 				"upstreams": []map[string]interface{}{
-					buildUpstream(url, maxRequests),
+					buildUpstream(s.URL, s.MaxRequests),
 				},
 				"transport": map[string]interface{}{
 					"protocol":     "http",
