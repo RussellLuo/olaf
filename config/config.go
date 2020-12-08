@@ -28,14 +28,14 @@ type Data struct {
 }
 
 type Server struct {
-	Listen    string `json:"listen" yaml:"listen"`
-	HTTPPort  int    `json:"http_port" yaml:"http_port"`
-	HTTPSPort int    `json:"https_port" yaml:"https_port"`
+	Listen    []string `json:"listen" yaml:"listen"`
+	HTTPPort  int      `json:"http_port" yaml:"http_port"`
+	HTTPSPort int      `json:"https_port" yaml:"https_port"`
 }
 
 func (s *Server) init() {
-	if s.Listen == "" {
-		s.Listen = ":8080"
+	if len(s.Listen) == 0 {
+		s.Listen = []string{":8080"}
 	}
 	if s.HTTPPort == 0 {
 		s.HTTPPort = 80
@@ -54,7 +54,7 @@ func BuildCaddyConfig(data *Data) map[string]interface{} {
 			"http": map[string]interface{}{
 				"http_port":  data.Server.HTTPPort,
 				"https_port": data.Server.HTTPSPort,
-				"servers":    buildServers([]string{data.Server.Listen}, routes),
+				"servers":    buildServers(data.Server.Listen, routes),
 			},
 		},
 	}
