@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/RussellLuo/olaf/admin"
-	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -44,78 +43,6 @@ func (s *Server) init() {
 	if s.HTTPSPort == 0 {
 		s.HTTPSPort = 443
 	}
-}
-
-type service struct {
-	*admin.Service `yaml:",inline"`
-
-	Routes  []*route                    `yaml:"routes"`
-	Plugins []*admin.TenantCanaryPlugin `yaml:"plugins"`
-}
-
-type route struct {
-	*admin.Route `yaml:",inline"`
-
-	Plugins []*admin.TenantCanaryPlugin `yaml:"plugins"`
-}
-
-type content struct {
-	Server   Server                      `yaml:"server"`
-	Services []*service                  `yaml:"services"`
-	Plugins  []*admin.TenantCanaryPlugin `yaml:"plugins"`
-}
-
-func LoadDataFromYAML(body []byte, data *Data) error {
-	c := new(content)
-	if err := yaml.Unmarshal(body, c); err != nil {
-		return err
-	}
-
-	data.Server = c.Server
-	data.Services = make(map[string]*admin.Service)
-	data.Routes = make(map[string]*admin.Route)
-	data.Plugins = make(map[string]*admin.TenantCanaryPlugin)
-
-	for i, s := range c.Services { // global services
-		if s.Service.Name == "" {
-			s.Service.Name = fmt.Sprintf("service_%d", i)
-		}
-		data.Services[s.Service.Name] = s.Service
-
-		for j, r := range s.Routes { // routes associated to a service
-			if r.Route.Name == "" {
-				r.Route.Name = fmt.Sprintf("%s_route_%d", s.Service.Name, j)
-			}
-			r.Route.ServiceName = s.Service.Name
-			data.Routes[r.Route.Name] = r.Route
-
-			for k, p := range r.Plugins { // plugins applied to a route
-				if p.Name == "" {
-					p.Name = fmt.Sprintf("%s_plugin_%d", r.Route.Name, k)
-				}
-				p.ServiceName = s.Service.Name
-				p.RouteName = r.Route.Name
-				data.Plugins[p.Name] = p
-			}
-		}
-
-		for j, p := range s.Plugins { // plugins applied to a service
-			if p.Name == "" {
-				p.Name = fmt.Sprintf("%s_plugin_%d", s.Service.Name, j)
-			}
-			p.ServiceName = s.Service.Name
-			data.Plugins[p.Name] = p
-		}
-	}
-
-	for i, p := range c.Plugins { // global plugins
-		if p.Name == "" {
-			p.Name = fmt.Sprintf("plugin_%d", i)
-		}
-		data.Plugins[p.Name] = p
-	}
-
-	return nil
 }
 
 func BuildCaddyConfig(data *Data) map[string]interface{} {

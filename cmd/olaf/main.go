@@ -10,8 +10,8 @@ import (
 	"github.com/RussellLuo/appx"
 	"github.com/RussellLuo/kok/pkg/oasv2"
 	"github.com/RussellLuo/olaf/admin"
-	"github.com/RussellLuo/olaf/admin/file"
 	"github.com/RussellLuo/olaf/config/reloader"
+	"github.com/RussellLuo/olaf/store/yaml"
 )
 
 var (
@@ -24,10 +24,10 @@ func main() {
 	flag.StringVar(&configFile, "config", "./olaf.json", "Olaf config file")
 	flag.Parse()
 
-	store := file.NewStore(configFile)
+	store := yaml.New(configFile)
 
 	appx.MustRegister(
-		appx.New("HTTP-server").InitFunc(func(ctx appx.Context) error {
+		appx.New("Admin-server").InitFunc(func(ctx appx.Context) error {
 			server := &http.Server{
 				Addr: httpAddr,
 				Handler: admin.NewHTTPRouterWithOAS(

@@ -15,7 +15,8 @@ var (
 	ErrPluginExists    = errors.New("plugin already exists")
 	ErrPluginNotFound  = errors.New("plugin not found")
 
-	ErrBadRequest = errors.New("bad request")
+	ErrMethodNotAllowed = errors.New("method not allowed")
+	ErrBadRequest       = errors.New("bad request")
 )
 
 type Codec struct {
@@ -34,6 +35,8 @@ func codeFrom(err error) int {
 		return http.StatusBadRequest
 	case ErrServiceNotFound, ErrRouteNotFound, ErrPluginNotFound:
 		return http.StatusNotFound
+	case ErrMethodNotAllowed:
+		return http.StatusMethodNotAllowed
 	default:
 		return http.StatusInternalServerError
 	}

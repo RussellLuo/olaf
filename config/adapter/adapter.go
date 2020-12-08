@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/RussellLuo/olaf/config"
+	"github.com/RussellLuo/olaf/store/yaml"
 	"github.com/caddyserver/caddy/v2/caddyconfig"
 )
 
@@ -16,8 +17,10 @@ type Adapter struct{}
 
 // Adapt converts the Olaf YAML config in body to Caddy JSON.
 func (Adapter) Adapt(body []byte, options map[string]interface{}) ([]byte, []caddyconfig.Warning, error) {
-	data := new(config.Data)
-	config.LoadDataFromYAML(body, data)
+	data, err := yaml.Parse(body)
+	if err != nil {
+		return nil, nil, err
+	}
 	content := config.BuildCaddyConfig(data)
 
 	result, err := json.Marshal(content)
