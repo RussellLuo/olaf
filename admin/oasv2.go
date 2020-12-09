@@ -161,6 +161,20 @@ paths:
           in: body
           schema:
             $ref: "#/definitions/UpdateServiceRequestBody" 
+      %s 
+  /server:
+    get:
+      description: ""
+      operationId: "GetServer" 
+      %s
+    put:
+      description: ""
+      operationId: "UpdateServer"
+      parameters: 
+        - name: body
+          in: body
+          schema:
+            $ref: "#/definitions/UpdateServerRequestBody" 
       %s  
 `
 )
@@ -181,6 +195,8 @@ func getResponses(schema oasv2.Schema) []oasv2.OASResponses {
 		oasv2.GetOASResponses(schema, "DeleteService", 204, &DeleteServiceResponse{}),
 		oasv2.GetOASResponses(schema, "GetService", 200, &GetServiceResponse{}),
 		oasv2.GetOASResponses(schema, "UpdateService", 200, &UpdateServiceResponse{}),
+		oasv2.GetOASResponses(schema, "GetServer", 200, &GetServerResponse{}),
+		oasv2.GetOASResponses(schema, "UpdateServer", 200, &UpdateServerResponse{}),
 	}
 }
 
@@ -206,6 +222,8 @@ func getDefinitions(schema oasv2.Schema) map[string]oasv2.Definition {
 
 	oasv2.AddResponseDefinitions(defs, schema, "GetRoute", 200, (&GetRouteResponse{}).Body())
 
+	oasv2.AddResponseDefinitions(defs, schema, "GetServer", 200, (&GetServerResponse{}).Body())
+
 	oasv2.AddResponseDefinitions(defs, schema, "GetService", 200, (&GetServiceResponse{}).Body())
 
 	oasv2.AddResponseDefinitions(defs, schema, "ListPlugins", 200, (&ListPluginsResponse{}).Body())
@@ -216,6 +234,9 @@ func getDefinitions(schema oasv2.Schema) map[string]oasv2.Definition {
 
 	oasv2.AddDefinition(defs, "UpdateRouteRequestBody", reflect.ValueOf((&UpdateRouteRequest{}).Route))
 	oasv2.AddResponseDefinitions(defs, schema, "UpdateRoute", 200, (&UpdateRouteResponse{}).Body())
+
+	oasv2.AddDefinition(defs, "UpdateServerRequestBody", reflect.ValueOf((&UpdateServerRequest{}).Server))
+	oasv2.AddResponseDefinitions(defs, schema, "UpdateServer", 200, (&UpdateServerResponse{}).Body())
 
 	oasv2.AddDefinition(defs, "UpdateServiceRequestBody", reflect.ValueOf((&UpdateServiceRequest{}).Svc))
 	oasv2.AddResponseDefinitions(defs, schema, "UpdateService", 200, (&UpdateServiceResponse{}).Body())

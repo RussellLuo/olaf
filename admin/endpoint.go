@@ -231,6 +231,29 @@ func MakeEndpointOfGetRoute(s Admin) endpoint.Endpoint {
 	}
 }
 
+type GetServerResponse struct {
+	Server *Server `json:"server"`
+	Err    error   `json:"-"`
+}
+
+func (r *GetServerResponse) Body() interface{} { return r.Server }
+
+// Failed implements endpoint.Failer.
+func (r *GetServerResponse) Failed() error { return r.Err }
+
+// MakeEndpointOfGetServer creates the endpoint for s.GetServer.
+func MakeEndpointOfGetServer(s Admin) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		server, err := s.GetServer(
+			ctx,
+		)
+		return &GetServerResponse{
+			Server: server,
+			Err:    err,
+		}, nil
+	}
+}
+
 type GetServiceRequest struct {
 	Name string `json:"-"`
 }
@@ -353,6 +376,33 @@ func MakeEndpointOfUpdateRoute(s Admin) endpoint.Endpoint {
 			req.Route,
 		)
 		return &UpdateRouteResponse{
+			Err: err,
+		}, nil
+	}
+}
+
+type UpdateServerRequest struct {
+	Server *Server `json:"server"`
+}
+
+type UpdateServerResponse struct {
+	Err error `json:"-"`
+}
+
+func (r *UpdateServerResponse) Body() interface{} { return r }
+
+// Failed implements endpoint.Failer.
+func (r *UpdateServerResponse) Failed() error { return r.Err }
+
+// MakeEndpointOfUpdateServer creates the endpoint for s.UpdateServer.
+func MakeEndpointOfUpdateServer(s Admin) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(*UpdateServerRequest)
+		err := s.UpdateServer(
+			ctx,
+			req.Server,
+		)
+		return &UpdateServerResponse{
 			Err: err,
 		}, nil
 	}

@@ -21,34 +21,16 @@ var (
 )
 
 type Data struct {
-	Server   Server                               `json:"server" yaml:"server"`
+	Server   *admin.Server                        `json:"server" yaml:"server"`
 	Services map[string]*admin.Service            `json:"services" yaml:"services"`
 	Routes   map[string]*admin.Route              `json:"routes" yaml:"routes"`
 	Plugins  map[string]*admin.TenantCanaryPlugin `json:"plugins" yaml:"plugins"`
 }
 
-type Server struct {
-	Listen    []string `json:"listen" yaml:"listen"`
-	HTTPPort  int      `json:"http_port" yaml:"http_port"`
-	HTTPSPort int      `json:"https_port" yaml:"https_port"`
-}
-
-func (s *Server) init() {
-	if len(s.Listen) == 0 {
-		s.Listen = []string{":8080"}
-	}
-	if s.HTTPPort == 0 {
-		s.HTTPPort = 80
-	}
-	if s.HTTPSPort == 0 {
-		s.HTTPSPort = 443
-	}
-}
-
 func BuildCaddyConfig(data *Data) map[string]interface{} {
 	routes := buildCaddyRoutes(data)
 
-	data.Server.init()
+	data.Server.Init()
 	return map[string]interface{}{
 		"apps": map[string]interface{}{
 			"http": map[string]interface{}{

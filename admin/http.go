@@ -131,6 +131,19 @@ func NewHTTPRouterWithOAS(svc Admin, codecs httpcodec.Codecs, schema oasv2.Schem
 		),
 	)
 
+	codec = codecs.EncodeDecoder("GetServer")
+	r.Method(
+		"GET", "/server",
+		kithttp.NewServer(
+			MakeEndpointOfGetServer(svc),
+			decodeGetServerRequest(codec),
+			httpcodec.MakeResponseEncoder(codec, 200),
+			append(options,
+				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
+			)...,
+		),
+	)
+
 	codec = codecs.EncodeDecoder("GetService")
 	r.Method(
 		"GET", "/services/{name}",
@@ -189,6 +202,19 @@ func NewHTTPRouterWithOAS(svc Admin, codecs httpcodec.Codecs, schema oasv2.Schem
 		kithttp.NewServer(
 			MakeEndpointOfUpdateRoute(svc),
 			decodeUpdateRouteRequest(codec),
+			httpcodec.MakeResponseEncoder(codec, 200),
+			append(options,
+				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
+			)...,
+		),
+	)
+
+	codec = codecs.EncodeDecoder("UpdateServer")
+	r.Method(
+		"PUT", "/server",
+		kithttp.NewServer(
+			MakeEndpointOfUpdateServer(svc),
+			decodeUpdateServerRequest(codec),
 			httpcodec.MakeResponseEncoder(codec, 200),
 			append(options,
 				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
@@ -313,6 +339,12 @@ func decodeGetRouteRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	}
 }
 
+func decodeGetServerRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		return nil, nil
+	}
+}
+
 func decodeGetServiceRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req GetServiceRequest
@@ -354,6 +386,18 @@ func decodeUpdateRouteRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 
 		name := chi.URLParam(r, "name")
 		if err := codec.DecodeRequestParam("name", name, &_req.Name); err != nil {
+			return nil, err
+		}
+
+		return &_req, nil
+	}
+}
+
+func decodeUpdateServerRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		var _req UpdateServerRequest
+
+		if err := codec.DecodeRequestBody(r.Body, &_req.Server); err != nil {
 			return nil, err
 		}
 

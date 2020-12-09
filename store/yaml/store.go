@@ -68,6 +68,14 @@ func (s *Store) Load(t time.Time) (*config.Data, error) {
 	return data, nil
 }
 
+func (s *Store) UpdateServer(ctx context.Context, server *admin.Server) (err error) {
+	return admin.ErrMethodNotAllowed
+}
+
+func (s *Store) GetServer(ctx context.Context) (server *admin.Server, err error) {
+	return s.data.Server, nil
+}
+
 func (s *Store) CreateService(ctx context.Context, svc *admin.Service) (err error) {
 	return admin.ErrMethodNotAllowed
 }
@@ -217,7 +225,7 @@ type (
 	}
 
 	content struct {
-		Server   config.Server               `yaml:"server"`
+		Server   *admin.Server               `yaml:"server"`
 		Services []*service                  `yaml:"services"`
 		Plugins  []*admin.TenantCanaryPlugin `yaml:"plugins"`
 	}

@@ -7,6 +7,14 @@ import (
 //go:generate kokgen ./admin.go Admin
 
 type Admin interface {
+	// @kok(op): PUT /server
+	// @kok(body): server
+	UpdateServer(ctx context.Context, server *Server) (err error)
+
+	// @kok(op): GET /server
+	// @kok(success): body:server
+	GetServer(ctx context.Context) (server *Server, err error)
+
 	// @kok(op): POST /services
 	// @kok(body): svc
 	CreateService(ctx context.Context, svc *Service) (err error)
@@ -66,6 +74,24 @@ type Admin interface {
 	// @kok(op): DELETE /plugins/{name}
 	// @kok(success): statusCode:204
 	DeletePlugin(ctx context.Context, name string) (err error)
+}
+
+type Server struct {
+	Listen    []string `json:"listen" yaml:"listen"`
+	HTTPPort  int      `json:"http_port" yaml:"http_port"`
+	HTTPSPort int      `json:"https_port" yaml:"https_port"`
+}
+
+func (s *Server) Init() {
+	if len(s.Listen) == 0 {
+		s.Listen = []string{":8080"}
+	}
+	if s.HTTPPort == 0 {
+		s.HTTPPort = 80
+	}
+	if s.HTTPSPort == 0 {
+		s.HTTPSPort = 443
+	}
 }
 
 type Service struct {
