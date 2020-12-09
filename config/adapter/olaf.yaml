@@ -1,0 +1,34 @@
+server:
+  listen:
+  - :6666
+
+services:
+- name: production
+  url: localhost:2222
+  dial_timeout: 5s
+  max_requests: 100
+  routes:
+  - hosts:
+    - example.com
+    paths:
+    - /api/foo # original path from the client
+    strip_prefix: /api
+    add_prefix: /v1 # final path to service `production`: /v1/foo
+  - hosts:
+    - example.com
+    paths:
+    # `~:` represents a regex path
+    - ~:^/bar/\w+ # samples: /bar/1 or /bar/word
+    plugins:
+    - enabled: true
+      config:
+        # path "/bar/1?tid=5" will be routed to service `staging`
+        tenant_id_location: query
+        tenant_id_name: tid
+        tenant_id_whitelist: $ > 0 && $ < 10 # `$` represents the value of tid
+        upstream_service_name: staging
+
+- name: staging
+  url: localhost:3333
+  dial_timeout: 5s
+  max_requests: 100
