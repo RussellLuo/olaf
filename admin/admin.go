@@ -52,6 +52,14 @@ type Admin interface {
 	// @kok(success): body:plugin
 	CreateTenantCanaryPlugin(ctx context.Context, p *TenantCanaryPlugin) (plugin *TenantCanaryPlugin, err error)
 
+	// @kok(op): GET /plugins
+	// @kok(success): body:plugins
+	ListPlugins(ctx context.Context) (plugins []*TenantCanaryPlugin, err error)
+
+	// @kok(op): GET /plugins/{name}
+	// @kok(success): body:plugin
+	GetPlugin(ctx context.Context, name string) (plugin *TenantCanaryPlugin, err error)
+
 	// // @kok(op): PUT /plugins/{name}
 	// UpdatePlugin(ctx context.Context, name string) (err error)
 

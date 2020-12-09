@@ -173,6 +173,35 @@ func MakeEndpointOfDeleteService(s Admin) endpoint.Endpoint {
 	}
 }
 
+type GetPluginRequest struct {
+	Name string `json:"-"`
+}
+
+type GetPluginResponse struct {
+	Plugin *TenantCanaryPlugin `json:"plugin"`
+	Err    error               `json:"-"`
+}
+
+func (r *GetPluginResponse) Body() interface{} { return r.Plugin }
+
+// Failed implements endpoint.Failer.
+func (r *GetPluginResponse) Failed() error { return r.Err }
+
+// MakeEndpointOfGetPlugin creates the endpoint for s.GetPlugin.
+func MakeEndpointOfGetPlugin(s Admin) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(*GetPluginRequest)
+		plugin, err := s.GetPlugin(
+			ctx,
+			req.Name,
+		)
+		return &GetPluginResponse{
+			Plugin: plugin,
+			Err:    err,
+		}, nil
+	}
+}
+
 type GetRouteRequest struct {
 	Name string `json:"-"`
 }
@@ -226,6 +255,29 @@ func MakeEndpointOfGetService(s Admin) endpoint.Endpoint {
 		)
 		return &GetServiceResponse{
 			Service: service,
+			Err:     err,
+		}, nil
+	}
+}
+
+type ListPluginsResponse struct {
+	Plugins []*TenantCanaryPlugin `json:"plugins"`
+	Err     error                 `json:"-"`
+}
+
+func (r *ListPluginsResponse) Body() interface{} { return r.Plugins }
+
+// Failed implements endpoint.Failer.
+func (r *ListPluginsResponse) Failed() error { return r.Err }
+
+// MakeEndpointOfListPlugins creates the endpoint for s.ListPlugins.
+func MakeEndpointOfListPlugins(s Admin) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		plugins, err := s.ListPlugins(
+			ctx,
+		)
+		return &ListPluginsResponse{
+			Plugins: plugins,
 			Err:     err,
 		}, nil
 	}

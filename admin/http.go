@@ -105,6 +105,19 @@ func NewHTTPRouterWithOAS(svc Admin, codecs httpcodec.Codecs, schema oasv2.Schem
 		),
 	)
 
+	codec = codecs.EncodeDecoder("GetPlugin")
+	r.Method(
+		"GET", "/plugins/{name}",
+		kithttp.NewServer(
+			MakeEndpointOfGetPlugin(svc),
+			decodeGetPluginRequest(codec),
+			httpcodec.MakeResponseEncoder(codec, 200),
+			append(options,
+				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
+			)...,
+		),
+	)
+
 	codec = codecs.EncodeDecoder("GetRoute")
 	r.Method(
 		"GET", "/routes/{name}",
@@ -124,6 +137,19 @@ func NewHTTPRouterWithOAS(svc Admin, codecs httpcodec.Codecs, schema oasv2.Schem
 		kithttp.NewServer(
 			MakeEndpointOfGetService(svc),
 			decodeGetServiceRequest(codec),
+			httpcodec.MakeResponseEncoder(codec, 200),
+			append(options,
+				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
+			)...,
+		),
+	)
+
+	codec = codecs.EncodeDecoder("ListPlugins")
+	r.Method(
+		"GET", "/plugins",
+		kithttp.NewServer(
+			MakeEndpointOfListPlugins(svc),
+			decodeListPluginsRequest(codec),
 			httpcodec.MakeResponseEncoder(codec, 200),
 			append(options,
 				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
@@ -261,6 +287,19 @@ func decodeDeleteServiceRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc
 	}
 }
 
+func decodeGetPluginRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		var _req GetPluginRequest
+
+		name := chi.URLParam(r, "name")
+		if err := codec.DecodeRequestParam("name", name, &_req.Name); err != nil {
+			return nil, err
+		}
+
+		return &_req, nil
+	}
+}
+
 func decodeGetRouteRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req GetRouteRequest
@@ -284,6 +323,12 @@ func decodeGetServiceRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 		}
 
 		return &_req, nil
+	}
+}
+
+func decodeListPluginsRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		return nil, nil
 	}
 }
 

@@ -66,11 +66,25 @@ paths:
           in: body
           schema:
             $ref: "#/definitions/CreateTenantCanaryPluginRequestBody" 
+      %s
+    get:
+      description: ""
+      operationId: "ListPlugins" 
       %s 
   /plugins/{name}:
     delete:
       description: ""
       operationId: "DeletePlugin"
+      parameters:
+        - name: name
+          in: path
+          required: true
+          type: string
+          description: ""  
+      %s
+    get:
+      description: ""
+      operationId: "GetPlugin"
       parameters:
         - name: name
           in: path
@@ -158,7 +172,9 @@ func getResponses(schema oasv2.Schema) []oasv2.OASResponses {
 		oasv2.GetOASResponses(schema, "CreateService", 200, &CreateServiceResponse{}),
 		oasv2.GetOASResponses(schema, "ListServices", 200, &ListServicesResponse{}),
 		oasv2.GetOASResponses(schema, "CreateTenantCanaryPlugin", 200, &CreateTenantCanaryPluginResponse{}),
+		oasv2.GetOASResponses(schema, "ListPlugins", 200, &ListPluginsResponse{}),
 		oasv2.GetOASResponses(schema, "DeletePlugin", 204, &DeletePluginResponse{}),
+		oasv2.GetOASResponses(schema, "GetPlugin", 200, &GetPluginResponse{}),
 		oasv2.GetOASResponses(schema, "DeleteRoute", 204, &DeleteRouteResponse{}),
 		oasv2.GetOASResponses(schema, "GetRoute", 200, &GetRouteResponse{}),
 		oasv2.GetOASResponses(schema, "UpdateRoute", 200, &UpdateRouteResponse{}),
@@ -186,9 +202,13 @@ func getDefinitions(schema oasv2.Schema) map[string]oasv2.Definition {
 
 	oasv2.AddResponseDefinitions(defs, schema, "DeleteService", 204, (&DeleteServiceResponse{}).Body())
 
+	oasv2.AddResponseDefinitions(defs, schema, "GetPlugin", 200, (&GetPluginResponse{}).Body())
+
 	oasv2.AddResponseDefinitions(defs, schema, "GetRoute", 200, (&GetRouteResponse{}).Body())
 
 	oasv2.AddResponseDefinitions(defs, schema, "GetService", 200, (&GetServiceResponse{}).Body())
+
+	oasv2.AddResponseDefinitions(defs, schema, "ListPlugins", 200, (&ListPluginsResponse{}).Body())
 
 	oasv2.AddResponseDefinitions(defs, schema, "ListRoutes", 200, (&ListRoutesResponse{}).Body())
 

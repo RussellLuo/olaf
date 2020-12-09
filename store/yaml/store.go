@@ -127,6 +127,21 @@ func (s *Store) CreateTenantCanaryPlugin(ctx context.Context, p *admin.TenantCan
 	return nil, admin.ErrMethodNotAllowed
 }
 
+func (s *Store) ListPlugins(ctx context.Context) (plugins []*admin.TenantCanaryPlugin, err error) {
+	for _, p := range s.data.Plugins {
+		plugins = append(plugins, p)
+	}
+	return
+}
+
+func (s *Store) GetPlugin(ctx context.Context, name string) (plugin *admin.TenantCanaryPlugin, err error) {
+	plugin, ok := s.data.Plugins[name]
+	if !ok {
+		return nil, admin.ErrPluginNotFound
+	}
+	return plugin, nil
+}
+
 func (s *Store) DeletePlugin(ctx context.Context, name string) (err error) {
 	return admin.ErrMethodNotAllowed
 }
