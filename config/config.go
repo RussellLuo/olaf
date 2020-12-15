@@ -3,7 +3,6 @@ package config
 import (
 	"errors"
 	"fmt"
-	"log"
 	"regexp"
 	"sort"
 	"strings"
@@ -38,11 +37,19 @@ type Data struct {
 	Plugins  map[string]*admin.TenantCanaryPlugin `json:"plugins" yaml:"plugins"`
 }
 
-func BuildCaddyConfig(data *Data) map[string]interface{} {
+func BuildCaddyConfig(data *Data) (conf map[string]interface{}, err error) {
+	defer func(errPtr *error) {
+		if err := recover(); err != nil {
+			if e, ok := err.(error); ok {
+				*errPtr = e
+			}
+		}
+	}(&err)
+
 	routes := buildCaddyRoutes(data)
 
 	data.Server.Init()
-	conf := map[string]interface{}{
+	conf = map[string]interface{}{
 		"apps": map[string]interface{}{
 			"http": map[string]interface{}{
 				"http_port":  data.Server.HTTPPort,
@@ -60,7 +67,7 @@ func BuildCaddyConfig(data *Data) map[string]interface{} {
 		conf["logging"] = buildLoggingConfig()
 	}
 
-	return conf
+	return
 }
 
 func buildCaddyRoutes(data *Data) (routes []map[string]interface{}) {
@@ -71,8 +78,7 @@ func buildCaddyRoutes(data *Data) (routes []map[string]interface{}) {
 	// The route that has a higher priority will be matched earlier.
 	for _, r := range sortRoutes(data.Routes) {
 		if services[r.ServiceName] == nil {
-			log.Printf("service %q of route %q not found", r.ServiceName, r.Name)
-			continue
+			panic(fmt.Errorf("service %q of route %q not found", r.ServiceName, r.Name))
 		}
 
 		routes = append(routes, map[string]interface{}{
@@ -256,8 +262,7 @@ func canaryReverseProxy(p *admin.TenantCanaryPlugin, services map[string]*admin.
 
 	s := services[p.Config.UpstreamServiceName]
 	if s == nil {
-		log.Printf("upstream service %q of plugin %q not found", p.Config.UpstreamServiceName, p.Name)
-		return
+		panic(fmt.Errorf("upstream service %q of plugin %q not found", p.Config.UpstreamServiceName, p.Name))
 	}
 
 	name := p.Config.TenantIDName
@@ -290,7 +295,7 @@ func reverseProxy(s *admin.Service, expr string) map[string]interface{} {
 		var err error
 		timeout, err = time.ParseDuration(s.DialTimeout)
 		if err != nil {
-			log.Printf("parse dial_timeout of service %q err: %v\n", s.Name, err)
+			panic(fmt.Errorf("parse dial_timeout of service %q err: %v\n", s.Name, err))
 		}
 	}
 
@@ -361,8 +366,7 @@ func buildServers(addrs []string, enableAutoHTTPS, disableAccessLog bool, routes
 	for _, a := range addrs {
 		na, err := newNetAddr(a)
 		if err != nil {
-			log.Printf("unsupported network address %q", a)
-			continue
+			panic(fmt.Errorf("unsupported network address %q", a))
 		}
 
 		switch na.Network {

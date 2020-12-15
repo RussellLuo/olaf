@@ -21,7 +21,11 @@ func (Adapter) Adapt(body []byte, options map[string]interface{}) ([]byte, []cad
 	if err != nil {
 		return nil, nil, err
 	}
-	content := config.BuildCaddyConfig(data)
+
+	content, err := config.BuildCaddyConfig(data)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	result, err := json.Marshal(content)
 	if err != nil {

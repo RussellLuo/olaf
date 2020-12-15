@@ -74,9 +74,12 @@ func (r *Reloader) Stop() {
 }
 
 func (r *Reloader) reloadCaddy(data *config.Data) error {
-	content := config.BuildCaddyConfig(data)
+	content, err := config.BuildCaddyConfig(data)
+	if err != nil {
+		return err
+	}
 
-	err := setCaddyConfig(content)
+	err = setCaddyConfig(content)
 	if err != nil {
 		log.Printf("new config: %#v\n", content)
 	}
