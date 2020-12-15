@@ -295,7 +295,7 @@ func reverseProxy(s *admin.Service, expr string) map[string]interface{} {
 		var err error
 		timeout, err = time.ParseDuration(s.DialTimeout)
 		if err != nil {
-			panic(fmt.Errorf("parse dial_timeout of service %q err: %v\n", s.Name, err))
+			panic(fmt.Errorf("failed to parse dial_timeout of service %q: %v", s.Name, err))
 		}
 	}
 
@@ -366,7 +366,7 @@ func buildServers(addrs []string, enableAutoHTTPS, disableAccessLog bool, routes
 	for _, a := range addrs {
 		na, err := newNetAddr(a)
 		if err != nil {
-			panic(fmt.Errorf("unsupported network address %q", a))
+			panic(fmt.Errorf("unsupported network address: %q", a))
 		}
 
 		switch na.Network {
