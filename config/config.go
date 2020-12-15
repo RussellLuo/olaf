@@ -76,10 +76,11 @@ func buildCaddyRoutes(data *Data) (routes []map[string]interface{}) {
 	}
 
 	routes = append(routes, map[string]interface{}{
-		"handle": []map[string]string{
+		// Respond 404 for all unmatched routes.
+		"handle": []map[string]interface{}{
 			{
-				"handler": "static_response",
-				"body":    "no content",
+				"handler":     "static_response",
+				"status_code": 404,
 			},
 		},
 	})
