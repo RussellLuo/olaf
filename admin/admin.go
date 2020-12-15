@@ -77,10 +77,11 @@ type Admin interface {
 }
 
 type Server struct {
-	Listen          []string `json:"listen" yaml:"listen"`
-	HTTPPort        int      `json:"http_port" yaml:"http_port"`
-	HTTPSPort       int      `json:"https_port" yaml:"https_port"`
-	EnableAutoHTTPS bool     `json:"enable_auto_https" yaml:"enable_auto_https"`
+	Listen           []string `json:"listen" yaml:"listen"`
+	HTTPPort         int      `json:"http_port" yaml:"http_port"`
+	HTTPSPort        int      `json:"https_port" yaml:"https_port"`
+	EnableAutoHTTPS  bool     `json:"enable_auto_https" yaml:"enable_auto_https"`
+	DisableAccessLog bool     `json:"disable_access_log" yaml:"disable_access_log"`
 }
 
 func (s *Server) Init() {

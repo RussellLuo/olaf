@@ -31,15 +31,25 @@ func BuildCaddyConfig(data *Data) map[string]interface{} {
 	routes := buildCaddyRoutes(data)
 
 	data.Server.Init()
-	return map[string]interface{}{
+	conf := map[string]interface{}{
 		"apps": map[string]interface{}{
 			"http": map[string]interface{}{
 				"http_port":  data.Server.HTTPPort,
 				"https_port": data.Server.HTTPSPort,
-				"servers":    buildServers(data.Server.Listen, data.Server.EnableAutoHTTPS, routes),
+				"servers": buildServers(
+					data.Server.Listen, data.Server.EnableAutoHTTPS,
+					data.Server.DisableAccessLog, routes,
+				),
 			},
 		},
 	}
+
+	// Add the logging settings if access-log is enabled.
+	if !data.Server.DisableAccessLog {
+		conf["logging"] = buildLoggingConfig()
+	}
+
+	return conf
 }
 
 func buildCaddyRoutes(data *Data) (routes []map[string]interface{}) {
@@ -310,7 +320,7 @@ func buildUpstream(url string, maxRequests int) map[string]interface{} {
 	return m
 }
 
-func buildServers(addrs []string, enableAutoHTTPS bool, routes []map[string]interface{}) map[string]interface{} {
+func buildServers(addrs []string, enableAutoHTTPS, disableAccessLog bool, routes []map[string]interface{}) map[string]interface{} {
 	listenHosts := make(map[string][]string)
 	for _, a := range addrs {
 		s := strings.SplitN(a, ":", 2)
@@ -356,7 +366,7 @@ func buildServers(addrs []string, enableAutoHTTPS bool, routes []map[string]inte
 		name := fmt.Sprintf("srv%d", i)
 		i++
 
-		servers[name] = map[string]interface{}{
+		conf := map[string]interface{}{
 			"automatic_https": map[string]interface{}{
 				"disable": !enableAutoHTTPS,
 			},
@@ -365,7 +375,35 @@ func buildServers(addrs []string, enableAutoHTTPS bool, routes []map[string]inte
 				buildRoute(hosts),
 			},
 		}
+		// Add the logging settings if access-log is enabled.
+		if !disableAccessLog {
+			conf["logs"] = map[string]string{
+				"default_logger_name": "log0",
+			}
+		}
+
+		servers[name] = conf
 	}
 
 	return servers
+}
+
+func buildLoggingConfig() map[string]interface{} {
+	return map[string]interface{}{
+		"logs": map[string]interface{}{
+			"default": map[string]interface{}{
+				"exclude": []string{
+					"http.log.access.log0",
+				},
+			},
+			"log0": map[string]interface{}{
+				"include": []string{
+					"http.log.access.log0",
+				},
+				"writer": map[string]string{
+					"output": "stdout",
+				},
+			},
+		},
+	}
 }
