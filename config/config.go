@@ -36,7 +36,7 @@ func BuildCaddyConfig(data *Data) map[string]interface{} {
 			"http": map[string]interface{}{
 				"http_port":  data.Server.HTTPPort,
 				"https_port": data.Server.HTTPSPort,
-				"servers":    buildServers(data.Server.Listen, routes),
+				"servers":    buildServers(data.Server.Listen, data.Server.EnableAutoHTTPS, routes),
 			},
 		},
 	}
@@ -310,7 +310,7 @@ func buildUpstream(url string, maxRequests int) map[string]interface{} {
 	return m
 }
 
-func buildServers(addrs []string, routes []map[string]interface{}) map[string]interface{} {
+func buildServers(addrs []string, enableAutoHTTPS bool, routes []map[string]interface{}) map[string]interface{} {
 	listenHosts := make(map[string][]string)
 	for _, a := range addrs {
 		s := strings.SplitN(a, ":", 2)
@@ -358,7 +358,7 @@ func buildServers(addrs []string, routes []map[string]interface{}) map[string]in
 
 		servers[name] = map[string]interface{}{
 			"automatic_https": map[string]interface{}{
-				"disable": true,
+				"disable": !enableAutoHTTPS,
 			},
 			"listen": []string{listen},
 			"routes": []map[string]interface{}{
