@@ -18,6 +18,17 @@ var (
 	ErrUnmodified = errors.New("data not modified")
 
 	reRegexpPath = regexp.MustCompile(`~(\w+)?:\s*(.+)`)
+
+	errUnsupportedNetwork = errors.New("unsupported network address")
+)
+
+const (
+	networkPrefixTCP  = "tcp/"
+	networkPrefixUDP  = "udp/"
+	networkPrefixUnix = "unix/"
+
+	networkTCP  = "tcp"
+	networkUnix = "unix"
 )
 
 type Data struct {
@@ -321,12 +332,48 @@ func buildUpstream(url string, maxRequests int) map[string]interface{} {
 	return m
 }
 
+type netAddr struct {
+	Network string
+	Address string
+}
+
+func newNetAddr(s string) (na netAddr, err error) {
+	// See https://caddyserver.com/docs/conventions#network-addresses
+	switch {
+	case strings.HasPrefix(s, networkPrefixTCP):
+		na.Network = networkTCP
+		na.Address = strings.TrimPrefix(s, networkPrefixTCP)
+	case strings.HasPrefix(s, networkPrefixUDP):
+		return na, errUnsupportedNetwork
+	case strings.HasPrefix(s, networkPrefixUnix):
+		na.Network = networkUnix
+		na.Address = s // Preserve the complete address.
+	default: // tcp
+		na.Network = networkTCP
+		na.Address = s
+	}
+
+	return
+}
+
 func buildServers(addrs []string, enableAutoHTTPS, disableAccessLog bool, routes []map[string]interface{}) map[string]interface{} {
 	listenHosts := make(map[string][]string)
 	for _, a := range addrs {
-		s := strings.SplitN(a, ":", 2)
-		host, listen := s[0], ":"+s[1]
-		listenHosts[listen] = append(listenHosts[listen], host)
+		na, err := newNetAddr(a)
+		if err != nil {
+			log.Printf("unsupported network address %q", a)
+			continue
+		}
+
+		switch na.Network {
+		case networkTCP:
+			s := strings.SplitN(na.Address, ":", 2)
+			host, listen := s[0], ":"+s[1]
+			listenHosts[listen] = append(listenHosts[listen], host)
+		case networkUnix:
+			// Unix domain socket has no host.
+			listenHosts[na.Address] = []string(nil)
+		}
 	}
 
 	buildRoute := func(hosts []string) map[string]interface{} {
@@ -348,7 +395,7 @@ func buildServers(addrs []string, enableAutoHTTPS, disableAccessLog bool, routes
 			}
 		}
 
-		if !matchAnyHost {
+		if !matchAnyHost && len(hosts) > 0 {
 			r["match"] = []map[string]interface{}{
 				{
 					"host": hosts,
