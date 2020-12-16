@@ -18,13 +18,13 @@ The top-level entries:
 | --- | --- | --- |
 | `server` | | The Server options. |
 | `services` | √ | A list of Services. Similar to Kong's [Service Object](https://docs.konghq.com/2.2.x/admin-api/#service-object). |
-| `plugins` | | A list of global Plugins. Default: no plugin. Similar to Kong's [Plugin Object](https://docs.konghq.com/2.2.x/admin-api/#plugin-object). |
+| `plugins` | | A list of global Plugins. Default: `[]` (no plugin). Similar to Kong's [Plugin Object](https://docs.konghq.com/2.2.x/admin-api/#plugin-object). |
 
 The Server entity:
 
 | Attribute | Required | Description |
 | --- | --- | --- |
-| `listen` | | [Network addresses](https://caddyserver.com/docs/json/apps/http/servers/listen/) to which to bind listeners. Default: `":8080"`. |
+| `listen` | | [Network addresses](https://caddyserver.com/docs/json/apps/http/servers/listen/) to which to bind listeners. Default: `[":8080"]`. |
 | `http_port` | | The port to use for [HTTP](https://caddyserver.com/docs/json/apps/http/http_port/). Default: `80`. |
 | `https_port` | | The port to use for [HTTPS](https://caddyserver.com/docs/json/apps/http/https_port/). Default: `443`. |
 | `enable_auto_https` | | Whether to enable [automatic HTTPS](https://caddyserver.com/docs/json/apps/http/servers/automatic_https/), Default: `false`. |
@@ -39,20 +39,20 @@ The Service entity:
 | `dial_timeout` | | The [duration string](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/transport/http/dial_timeout/), which indicates how long to wait before timing out trying to connect to this Service. Default: `0s` (no timeout). |
 | `max_requests` | | The [maximum number of simultaneous requests](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/upstreams/max_requests/) to allow to this Service. Default: `0` (no limit). |
 | `routes` | √ | A list of Routes associated to this Service. Similar to Kong's [Route Object](https://docs.konghq.com/2.2.x/admin-api/#route-object). |
-| `plugins` | | A list of Plugins applied to this Service. Default: no plugin. Similar to Kong's [Plugin Object](https://docs.konghq.com/2.2.x/admin-api/#plugin-object). |
+| `plugins` | | A list of Plugins applied to this Service. Default: `[]` (no plugin). Similar to Kong's [Plugin Object](https://docs.konghq.com/2.2.x/admin-api/#plugin-object). |
 
 The Route entity:
 
 | Attribute | Required | Description |
 | --- | --- | --- |
 | `name` | | The name of this Route. Default: `<service_name>_route_<i>` (`<i>` is the index of this route in the array). |
-| `methods` | | A list of [HTTP methods](https://caddyserver.com/docs/caddyfile/matchers#method) that match this Route. Default: any HTTP method. |
-| `hosts` | | A list of [hosts](https://caddyserver.com/docs/caddyfile/matchers#host) that match this Route. Default: any host. |
+| `methods` | | A list of [HTTP methods](https://caddyserver.com/docs/caddyfile/matchers#method) that match this Route. Default: `[]` (any HTTP method). |
+| `hosts` | | A list of [hosts](https://caddyserver.com/docs/caddyfile/matchers#host) that match this Route. Default: `[]` (any host). |
 | `paths` | √ | A list of [URI paths](https://caddyserver.com/docs/caddyfile/matchers#path) that match this Route. A special prefix `~:` means a [regexp path](https://caddyserver.com/docs/caddyfile/matchers#path-regexp). |
 | `strip_prefix` | | The path prefix that needs to be stripped. Default: `""` (no stripping). |
 | `add_prefix` | | The path prefix that needs to be added. Default: `""` (no adding). |
 | `priority` | | The priority of this Route. Default: `0`. Routes will be matched from highest priority to lowest. |
-| `plugins` | | A list of plugins applied to this Route. Similar to Kong's [Plugin Object](https://docs.konghq.com/2.2.x/admin-api/#plugin-object). |
+| `plugins` | | A list of plugins applied to this Route. Default: `[]` (no plugin). Similar to Kong's [Plugin Object](https://docs.konghq.com/2.2.x/admin-api/#plugin-object). |
 
 The Plugin entity:
 
@@ -67,7 +67,7 @@ The Config of the Tenant Canary Plugin:
 | Attribute | Required | Description |
 | --- | --- | --- |
 | `upstream_service_name` | √ | The name of the upstream service for this Plugin. |
-| `tenant_id_location` | √ | The location of Tenant-ID in the HTTP request. Options: `query` or `body`. |
+| `tenant_id_location` | √ | The location of Tenant-ID in the HTTP request. Options: `query`, or `body` (requires `caddy-requestbodyvar` extension). |
 | `tenant_id_name` | √ | The name of Tenant-ID in the HTTP request. |
 | `tenant_id_whitelist` | √ | The Tenant-ID whitelist (using [CEL expressions](https://caddyserver.com/docs/caddyfile/matchers#expression)). If the value of Tenant-ID is in the whitelist, the corresponding request will be routed to the service specified by `upstream_service_name`. |
 
