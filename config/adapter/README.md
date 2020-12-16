@@ -58,7 +58,7 @@ The Plugin entity:
 
 | Attribute | Required | Description |
 | --- | --- | --- |
-| `name` | | The name of this Plugin. Default: `"plugin_<i>"` (`<i>` is the index of this plugin in the array). |
+| `name` | | The name of this Plugin. Default: `"plugin_<i>"` for global plugins, `"<service_name>_plugin_<i>"` for service plugins, or `"<route_name>_plugin_<i>"` for route plugins (`<i>` is the index of this plugin in the array). |
 | `enabled` | | Whether this Plugin is applied. Default: `false` |
 | `config` | √ | The configuration of this Plugin. |
 
