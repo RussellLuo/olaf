@@ -71,6 +71,10 @@ The Config of the Tenant Canary Plugin:
 | `tenant_id_name` | √ | The name of Tenant-ID in the HTTP request. |
 | `tenant_id_whitelist` | √ | The Tenant-ID whitelist (using [CEL expressions](https://caddyserver.com/docs/caddyfile/matchers#expression)). If the value of Tenant-ID is in the whitelist, the corresponding request will be routed to the service specified by `upstream_service_name`. |
 
+### Example
+
+See [olaf.yaml](olaf.yaml).
+
 
 ## Usage
 
