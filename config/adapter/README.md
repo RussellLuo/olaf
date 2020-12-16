@@ -24,7 +24,7 @@ The Server entity:
 
 | Attribute | Required | Description |
 | --- | --- | --- |
-| `listen` | | [Network addresses](https://caddyserver.com/docs/json/apps/http/servers/listen/) to which to bind listeners. Default: `[":8080"]`. |
+| `listen` | | [Network addresses](https://caddyserver.com/docs/json/apps/http/servers/listen/) to which to bind listeners. Default: `[":6060"]`. |
 | `http_port` | | The port to use for [HTTP](https://caddyserver.com/docs/json/apps/http/http_port/). Default: `80`. |
 | `https_port` | | The port to use for [HTTPS](https://caddyserver.com/docs/json/apps/http/https_port/). Default: `443`. |
 | `enable_auto_https` | | Whether to enable [automatic HTTPS](https://caddyserver.com/docs/json/apps/http/servers/automatic_https/), Default: `false`. |

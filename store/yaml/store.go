@@ -161,6 +161,7 @@ func Parse(in []byte) (*config.Data, error) {
 		return nil, err
 	}
 
+	c.Server.Init()
 	data := &config.Data{
 		Server:   c.Server,
 		Services: make(map[string]*admin.Service),

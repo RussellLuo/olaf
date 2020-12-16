@@ -48,7 +48,6 @@ func BuildCaddyConfig(data *Data) (conf map[string]interface{}, err error) {
 
 	routes := buildCaddyRoutes(data)
 
-	data.Server.Init()
 	conf = map[string]interface{}{
 		"apps": map[string]interface{}{
 			"http": map[string]interface{}{

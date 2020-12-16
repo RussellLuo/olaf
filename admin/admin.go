@@ -86,7 +86,7 @@ type Server struct {
 
 func (s *Server) Init() {
 	if len(s.Listen) == 0 {
-		s.Listen = []string{":8080"}
+		s.Listen = []string{":6060"}
 	}
 	if s.HTTPPort == 0 {
 		s.HTTPPort = 80
