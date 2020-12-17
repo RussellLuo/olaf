@@ -255,7 +255,7 @@ func canaryReverseProxy(p *olaf.TenantCanaryPlugin, services map[string]*olaf.Se
 
 	name := p.Config.TenantIDName
 	if name == "" {
-		return
+		panic(fmt.Errorf("tenant-id name of plugin %q is empty", p.Name))
 	}
 
 	var idVar string
@@ -272,13 +272,14 @@ func canaryReverseProxy(p *olaf.TenantCanaryPlugin, services map[string]*olaf.Se
 		idVar = fmt.Sprintf("int({http.request.body.%s})", name)
 		canaryFieldInBody = true
 	default:
-		return
+		panic(fmt.Errorf("tenant-id location %q of plugin %q is invalid", p.Config.TenantIDLocation, p.Name))
 	}
 
-	if p.Config.TenantIDWhitelist != "" {
-		expr := strings.ReplaceAll(p.Config.TenantIDWhitelist, "$", idVar)
-		routes = append(routes, reverseProxy(s, expr))
+	if p.Config.TenantIDWhitelist == "" {
+		panic(fmt.Errorf("tenant-id whitelist of plugin %q is empty", p.Name))
 	}
+	expr := strings.ReplaceAll(p.Config.TenantIDWhitelist, "$", idVar)
+	routes = append(routes, reverseProxy(s, expr))
 
 	return
 }
