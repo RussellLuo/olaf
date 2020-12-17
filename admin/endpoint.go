@@ -6,11 +6,12 @@ package admin
 import (
 	"context"
 
+	"github.com/RussellLuo/olaf"
 	"github.com/go-kit/kit/endpoint"
 )
 
 type CreateRouteRequest struct {
-	Route *Route `json:"route"`
+	Route *olaf.Route `json:"route"`
 }
 
 type CreateRouteResponse struct {
@@ -37,7 +38,7 @@ func MakeEndpointOfCreateRoute(s Admin) endpoint.Endpoint {
 }
 
 type CreateServiceRequest struct {
-	Svc *Service `json:"svc"`
+	Svc *olaf.Service `json:"svc"`
 }
 
 type CreateServiceResponse struct {
@@ -64,12 +65,12 @@ func MakeEndpointOfCreateService(s Admin) endpoint.Endpoint {
 }
 
 type CreateTenantCanaryPluginRequest struct {
-	P *TenantCanaryPlugin `json:"p"`
+	P *olaf.TenantCanaryPlugin `json:"p"`
 }
 
 type CreateTenantCanaryPluginResponse struct {
-	Plugin *TenantCanaryPlugin `json:"plugin"`
-	Err    error               `json:"-"`
+	Plugin *olaf.TenantCanaryPlugin `json:"plugin"`
+	Err    error                    `json:"-"`
 }
 
 func (r *CreateTenantCanaryPluginResponse) Body() interface{} { return r.Plugin }
@@ -178,8 +179,8 @@ type GetPluginRequest struct {
 }
 
 type GetPluginResponse struct {
-	Plugin *TenantCanaryPlugin `json:"plugin"`
-	Err    error               `json:"-"`
+	Plugin *olaf.TenantCanaryPlugin `json:"plugin"`
+	Err    error                    `json:"-"`
 }
 
 func (r *GetPluginResponse) Body() interface{} { return r.Plugin }
@@ -207,8 +208,8 @@ type GetRouteRequest struct {
 }
 
 type GetRouteResponse struct {
-	Route *Route `json:"route"`
-	Err   error  `json:"-"`
+	Route *olaf.Route `json:"route"`
+	Err   error       `json:"-"`
 }
 
 func (r *GetRouteResponse) Body() interface{} { return r.Route }
@@ -232,8 +233,8 @@ func MakeEndpointOfGetRoute(s Admin) endpoint.Endpoint {
 }
 
 type GetServerResponse struct {
-	Server *Server `json:"server"`
-	Err    error   `json:"-"`
+	Server *olaf.Server `json:"server"`
+	Err    error        `json:"-"`
 }
 
 func (r *GetServerResponse) Body() interface{} { return r.Server }
@@ -259,8 +260,8 @@ type GetServiceRequest struct {
 }
 
 type GetServiceResponse struct {
-	Service *Service `json:"service"`
-	Err     error    `json:"-"`
+	Service *olaf.Service `json:"service"`
+	Err     error         `json:"-"`
 }
 
 func (r *GetServiceResponse) Body() interface{} { return r.Service }
@@ -284,8 +285,8 @@ func MakeEndpointOfGetService(s Admin) endpoint.Endpoint {
 }
 
 type ListPluginsResponse struct {
-	Plugins []*TenantCanaryPlugin `json:"plugins"`
-	Err     error                 `json:"-"`
+	Plugins []*olaf.TenantCanaryPlugin `json:"plugins"`
+	Err     error                      `json:"-"`
 }
 
 func (r *ListPluginsResponse) Body() interface{} { return r.Plugins }
@@ -307,8 +308,8 @@ func MakeEndpointOfListPlugins(s Admin) endpoint.Endpoint {
 }
 
 type ListRoutesResponse struct {
-	Routes []*Route `json:"routes"`
-	Err    error    `json:"-"`
+	Routes []*olaf.Route `json:"routes"`
+	Err    error         `json:"-"`
 }
 
 func (r *ListRoutesResponse) Body() interface{} { return r.Routes }
@@ -330,8 +331,8 @@ func MakeEndpointOfListRoutes(s Admin) endpoint.Endpoint {
 }
 
 type ListServicesResponse struct {
-	Services []*Service `json:"services"`
-	Err      error      `json:"-"`
+	Services []*olaf.Service `json:"services"`
+	Err      error           `json:"-"`
 }
 
 func (r *ListServicesResponse) Body() interface{} { return r.Services }
@@ -353,8 +354,8 @@ func MakeEndpointOfListServices(s Admin) endpoint.Endpoint {
 }
 
 type UpdateRouteRequest struct {
-	Name  string `json:"-"`
-	Route *Route `json:"route"`
+	Name  string      `json:"-"`
+	Route *olaf.Route `json:"route"`
 }
 
 type UpdateRouteResponse struct {
@@ -382,7 +383,7 @@ func MakeEndpointOfUpdateRoute(s Admin) endpoint.Endpoint {
 }
 
 type UpdateServerRequest struct {
-	Server *Server `json:"server"`
+	Server *olaf.Server `json:"server"`
 }
 
 type UpdateServerResponse struct {
@@ -409,8 +410,8 @@ func MakeEndpointOfUpdateServer(s Admin) endpoint.Endpoint {
 }
 
 type UpdateServiceRequest struct {
-	Name string   `json:"-"`
-	Svc  *Service `json:"svc"`
+	Name string        `json:"-"`
+	Svc  *olaf.Service `json:"svc"`
 }
 
 type UpdateServiceResponse struct {

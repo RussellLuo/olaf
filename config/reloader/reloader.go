@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/RussellLuo/olaf"
 	"github.com/RussellLuo/olaf/config"
 )
 
@@ -18,7 +19,7 @@ type Loader interface {
 	//
 	// For efficiency, Implementations should follow the If-Modified-Since style,
 	// see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since
-	Load(t time.Time) (*config.Data, error)
+	Load(t time.Time) (*olaf.Data, error)
 }
 
 type Reloader struct {
@@ -46,7 +47,7 @@ func (r *Reloader) Start() {
 		case <-tickC:
 			data, err := r.loader.Load(r.lastSynced)
 			if err != nil {
-				if err != config.ErrUnmodified {
+				if err != olaf.ErrDataUnmodified {
 					log.Printf("Load data err: %v\n", err)
 				}
 				continue
@@ -73,7 +74,7 @@ func (r *Reloader) Stop() {
 	<-r.exitC
 }
 
-func (r *Reloader) reloadCaddy(data *config.Data) error {
+func (r *Reloader) reloadCaddy(data *olaf.Data) error {
 	content, err := config.BuildCaddyConfig(data)
 	if err != nil {
 		return err

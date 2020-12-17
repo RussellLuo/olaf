@@ -8,14 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/RussellLuo/olaf/admin"
+	"github.com/RussellLuo/olaf"
 )
 
 var (
-	// A special error indicates that the data has not been modified
-	// since the given time.
-	ErrUnmodified = errors.New("data not modified")
-
 	reRegexpPath = regexp.MustCompile(`~(\w+)?:\s*(.+)`)
 
 	errUnsupportedNetwork = errors.New("unsupported network address")
@@ -30,14 +26,7 @@ const (
 	networkUnix = "unix"
 )
 
-type Data struct {
-	Server   *admin.Server                        `json:"server" yaml:"server"`
-	Services map[string]*admin.Service            `json:"services" yaml:"services"`
-	Routes   map[string]*admin.Route              `json:"routes" yaml:"routes"`
-	Plugins  map[string]*admin.TenantCanaryPlugin `json:"plugins" yaml:"plugins"`
-}
-
-func BuildCaddyConfig(data *Data) (conf map[string]interface{}, err error) {
+func BuildCaddyConfig(data *olaf.Data) (conf map[string]interface{}, err error) {
 	defer func(errPtr *error) {
 		if err := recover(); err != nil {
 			if e, ok := err.(error); ok {
@@ -69,7 +58,7 @@ func BuildCaddyConfig(data *Data) (conf map[string]interface{}, err error) {
 	return
 }
 
-func buildCaddyRoutes(data *Data) (routes []map[string]interface{}) {
+func buildCaddyRoutes(data *olaf.Data) (routes []map[string]interface{}) {
 	services := data.Services
 	plugins := data.Plugins
 
@@ -104,7 +93,7 @@ func buildCaddyRoutes(data *Data) (routes []map[string]interface{}) {
 }
 
 // sortRoutes sorts the given routes from highest priority to lowest.
-func sortRoutes(r map[string]*admin.Route) (routes []*admin.Route) {
+func sortRoutes(r map[string]*olaf.Route) (routes []*olaf.Route) {
 	for _, route := range r {
 		routes = append(routes, route)
 	}
@@ -116,7 +105,7 @@ func sortRoutes(r map[string]*admin.Route) (routes []*admin.Route) {
 	return
 }
 
-func buildRouteMatches(r *admin.Route) (matches []map[string]interface{}) {
+func buildRouteMatches(r *olaf.Route) (matches []map[string]interface{}) {
 	// Differentiate regexp paths from normal paths
 	var paths []string
 	rePaths := make(map[string]string)
@@ -164,7 +153,7 @@ func buildRouteMatches(r *admin.Route) (matches []map[string]interface{}) {
 	return
 }
 
-func buildSubRoutes(r *admin.Route, services map[string]*admin.Service, p map[string]*admin.TenantCanaryPlugin) (routes []map[string]interface{}) {
+func buildSubRoutes(r *olaf.Route, services map[string]*olaf.Service, p map[string]*olaf.TenantCanaryPlugin) (routes []map[string]interface{}) {
 	if r.StripPrefix != "" {
 		routes = append(routes, map[string]interface{}{
 			"handle": []map[string]string{
@@ -189,7 +178,7 @@ func buildSubRoutes(r *admin.Route, services map[string]*admin.Service, p map[st
 
 	service := services[r.ServiceName]
 
-	var plugin *admin.TenantCanaryPlugin
+	var plugin *olaf.TenantCanaryPlugin
 	plugins := findAppliedPlugins(p, r)
 	if len(plugins) > 0 {
 		// For simplicity, only use the first plugin now.
@@ -216,11 +205,11 @@ func buildSubRoutes(r *admin.Route, services map[string]*admin.Service, p map[st
 }
 
 // findAppliedPlugins finds the plugins that have been applied to the given route.
-func findAppliedPlugins(ps map[string]*admin.TenantCanaryPlugin, r *admin.Route) []*admin.TenantCanaryPlugin {
-	routeServicePlugins := make(map[string][]*admin.TenantCanaryPlugin)
-	routePlugins := make(map[string][]*admin.TenantCanaryPlugin)
-	servicePlugins := make(map[string][]*admin.TenantCanaryPlugin)
-	var globalPlugins []*admin.TenantCanaryPlugin
+func findAppliedPlugins(ps map[string]*olaf.TenantCanaryPlugin, r *olaf.Route) []*olaf.TenantCanaryPlugin {
+	routeServicePlugins := make(map[string][]*olaf.TenantCanaryPlugin)
+	routePlugins := make(map[string][]*olaf.TenantCanaryPlugin)
+	servicePlugins := make(map[string][]*olaf.TenantCanaryPlugin)
+	var globalPlugins []*olaf.TenantCanaryPlugin
 
 	for _, p := range ps {
 		if !p.Enabled {
@@ -254,7 +243,7 @@ func findAppliedPlugins(ps map[string]*admin.TenantCanaryPlugin, r *admin.Route)
 	return plugins
 }
 
-func canaryReverseProxy(p *admin.TenantCanaryPlugin, services map[string]*admin.Service) (routes []map[string]interface{}, canaryFieldInBody bool) {
+func canaryReverseProxy(p *olaf.TenantCanaryPlugin, services map[string]*olaf.Service) (routes []map[string]interface{}, canaryFieldInBody bool) {
 	if p == nil {
 		return
 	}
@@ -288,7 +277,7 @@ func canaryReverseProxy(p *admin.TenantCanaryPlugin, services map[string]*admin.
 	return
 }
 
-func reverseProxy(s *admin.Service, expr string) map[string]interface{} {
+func reverseProxy(s *olaf.Service, expr string) map[string]interface{} {
 	var timeout time.Duration
 	if s.DialTimeout != "" {
 		var err error
