@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/RussellLuo/olaf"
-	"github.com/RussellLuo/olaf/config"
+	"github.com/RussellLuo/olaf/caddyconfig/builder"
 )
 
 type Loader interface {
@@ -75,7 +75,7 @@ func (r *Reloader) Stop() {
 }
 
 func (r *Reloader) reloadCaddy(data *olaf.Data) error {
-	content, err := config.BuildCaddyConfig(data)
+	content, err := builder.Build(data)
 	if err != nil {
 		return err
 	}

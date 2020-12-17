@@ -1,4 +1,4 @@
-package config
+package builder
 
 import (
 	"errors"
@@ -26,7 +26,7 @@ const (
 	networkUnix = "unix"
 )
 
-func BuildCaddyConfig(data *olaf.Data) (conf map[string]interface{}, err error) {
+func Build(data *olaf.Data) (conf map[string]interface{}, err error) {
 	defer func(errPtr *error) {
 		if err := recover(); err != nil {
 			if e, ok := err.(error); ok {

@@ -10,7 +10,7 @@ import (
 	"github.com/RussellLuo/appx"
 	"github.com/RussellLuo/kok/pkg/oasv2"
 	"github.com/RussellLuo/olaf/admin"
-	"github.com/RussellLuo/olaf/config/reloader"
+	"github.com/RussellLuo/olaf/caddyconfig/reloader"
 	"github.com/RussellLuo/olaf/store/yaml"
 )
 

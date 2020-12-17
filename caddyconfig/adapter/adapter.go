@@ -3,7 +3,7 @@ package adapter
 import (
 	"encoding/json"
 
-	"github.com/RussellLuo/olaf/config"
+	"github.com/RussellLuo/olaf/caddyconfig/builder"
 	"github.com/RussellLuo/olaf/store/yaml"
 	"github.com/caddyserver/caddy/v2/caddyconfig"
 )
@@ -22,7 +22,7 @@ func (Adapter) Adapt(body []byte, options map[string]interface{}) ([]byte, []cad
 		return nil, nil, err
 	}
 
-	content, err := config.BuildCaddyConfig(data)
+	content, err := builder.Build(data)
 	if err != nil {
 		return nil, nil, err
 	}
