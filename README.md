@@ -6,7 +6,7 @@ Olaf is a Configuration Manager for [Caddy](https://caddyserver.com/).
 
 ### Config Adapter
 
-See [Olaf's Declarative Configuration](config/adapter).
+See [Olaf's Declarative Configuration](caddyconfig/adapter).
 
 ### Config Admin API
 

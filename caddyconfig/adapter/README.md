@@ -36,7 +36,7 @@ The Service entity:
 | --- | --- | --- |
 | `name` | | The name of this Service. Default: `"service_<i>"` (`<i>` is the index of this service in the array). |
 | `url`	| √ | The [network address to dial](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/upstreams/dial/) to connect to this Service. |
-| `dial_timeout` | | The [duration string](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/transport/http/dial_timeout/), which indicates how long to wait before timing out trying to connect to this Service. Default: `"0s"` (no timeout). |
+| `dial_timeout` | | The [duration string](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/transport/http/dial_timeout/), which indicates how long to wait before timing out trying to connect to this Service. Default: `""` (no timeout). |
 | `max_requests` | | The [maximum number of simultaneous requests](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/upstreams/max_requests/) to allow to this Service. Default: `0` (no limit). |
 | `routes` | √ | A list of Routes associated to this Service. Similar to Kong's [Route Object](https://docs.konghq.com/2.2.x/admin-api/#route-object). |
 | `plugins` | | A list of Plugins applied to this Service. Default: `[]`. Similar to Kong's [Plugin Object](https://docs.konghq.com/2.2.x/admin-api/#plugin-object). |
@@ -90,7 +90,7 @@ Build Caddy:
 
 ```bash
 $ xcaddy build \
-    --with github.com/RussellLuo/olaf/config/adapter \
+    --with github.com/RussellLuo/olaf/caddyconfig/adapter \
     --with github.com/RussellLuo/caddy-requestbodyvar
 ```
 
