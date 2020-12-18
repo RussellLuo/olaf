@@ -1,7 +1,6 @@
 package builder
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"sort"
@@ -14,7 +13,7 @@ import (
 var (
 	reRegexpPath = regexp.MustCompile(`~(\w+)?:\s*(.+)`)
 
-	errUnsupportedNetwork = errors.New("unsupported network address")
+	reTCPAddressFormat = regexp.MustCompile(`^([^:]+)?(:\d+(-\d+)?)?$`)
 )
 
 const (
@@ -321,6 +320,12 @@ func reverseProxy(s *olaf.Service, expr string) map[string]interface{} {
 }
 
 func buildUpstream(url string, maxRequests int) map[string]interface{} {
+	// Validate the format of url.
+	// TODO: Disallow port ranges. (URLs to dial do not support port ranges)
+	if _, err := newNetAddr(url); err != nil {
+		panic(err)
+	}
+
 	m := map[string]interface{}{
 		"dial": url,
 	}
@@ -343,14 +348,26 @@ func newNetAddr(s string) (na netAddr, err error) {
 	case strings.HasPrefix(s, networkPrefixTCP):
 		na.Network = networkTCP
 		na.Address = strings.TrimPrefix(s, networkPrefixTCP)
+
+		if na.Address == "" || !reTCPAddressFormat.MatchString(na.Address) {
+			return na, fmt.Errorf("invalid TCP address: %q", s)
+		}
 	case strings.HasPrefix(s, networkPrefixUDP):
-		return na, errUnsupportedNetwork
+		return na, fmt.Errorf("unsupported UDP address: %q", s)
 	case strings.HasPrefix(s, networkPrefixUnix):
 		na.Network = networkUnix
 		na.Address = s // Preserve the complete address.
+
+		if !strings.HasPrefix(na.Address, networkPrefixUnix+"/") {
+			return na, fmt.Errorf("invalid Unix address: %q", s)
+		}
 	default: // tcp
 		na.Network = networkTCP
 		na.Address = s
+
+		if na.Address == "" || !reTCPAddressFormat.MatchString(na.Address) {
+			return na, fmt.Errorf("invalid TCP address: %q", s)
+		}
 	}
 
 	return
@@ -361,13 +378,19 @@ func buildServers(addrs []string, enableAutoHTTPS, disableAccessLog bool, routes
 	for _, a := range addrs {
 		na, err := newNetAddr(a)
 		if err != nil {
-			panic(fmt.Errorf("unsupported network address: %q", a))
+			panic(err)
 		}
 
 		switch na.Network {
 		case networkTCP:
 			s := strings.SplitN(na.Address, ":", 2)
-			host, listen := s[0], ":"+s[1]
+			host := s[0]
+
+			listen := ":80"
+			if len(s) == 2 {
+				listen = ":" + s[1]
+			}
+
 			listenHosts[listen] = append(listenHosts[listen], host)
 		case networkUnix:
 			// Unix domain socket has no host.
