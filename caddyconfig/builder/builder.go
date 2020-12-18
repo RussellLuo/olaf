@@ -320,10 +320,21 @@ func reverseProxy(s *olaf.Service, expr string) map[string]interface{} {
 }
 
 func buildUpstream(url string, maxRequests int) map[string]interface{} {
-	// Validate the format of url.
-	// TODO: Disallow port ranges. (URLs to dial do not support port ranges)
-	if _, err := newNetAddr(url); err != nil {
+	// Validate the conventional format of url.
+	na, err := newNetAddr(url)
+	if err != nil {
 		panic(err)
+	}
+	// Special validation logic for TCP addresses to dial.
+	// See https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/upstreams/dial#docs
+	if na.Network == networkTCP {
+		s := strings.SplitN(na.Address, ":", 2)
+		if len(s) != 2 { // TCP address to dial must have a host and a port
+			panic(fmt.Errorf("invalid TCP address: %q", url))
+		}
+		if strings.Contains(s[1], "-") { // TCP address to dial can not use port ranges
+			panic(fmt.Errorf("invalid TCP address: %q", url))
+		}
 	}
 
 	m := map[string]interface{}{
