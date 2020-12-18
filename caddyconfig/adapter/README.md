@@ -2,11 +2,11 @@
 
 ## Declarative Configuration
 
-### Format
+### Overview
 
 Olaf's declarative configuration is inspired by Kong, and the configuration must be written in YAML.
 
-For the core idea of the declarative configuration format, see [Kong's Declarative Configuration Format](https://docs.konghq.com/2.2.x/db-less-and-declarative-config/#the-declarative-configuration-format).
+For the core idea of the declarative configuration, see [Kong's Declarative Configuration](https://docs.konghq.com/2.2.x/db-less-and-declarative-config/#what-is-declarative-configuration).
 
 ### Entities
 
@@ -49,8 +49,8 @@ The Route entity:
 | `methods` | | A list of [HTTP methods](https://caddyserver.com/docs/caddyfile/matchers#method) that match this Route. Default: `[]` (any HTTP method). |
 | `hosts` | | A list of [hosts](https://caddyserver.com/docs/caddyfile/matchers#host) that match this Route. Default: `[]` (any host). |
 | `paths` | √ | A list of [URI paths](https://caddyserver.com/docs/caddyfile/matchers#path) that match this Route. A special prefix `~:` means a [regexp path](https://caddyserver.com/docs/caddyfile/matchers#path-regexp). |
-| `strip_prefix` | | The path prefix that needs to be stripped. Default: `""` (no stripping). |
-| `add_prefix` | | The path prefix that needs to be added. Default: `""` (no adding). |
+| `strip_prefix` | | The prefix that needs to be stripped from the original path. Default: `""` (no stripping). |
+| `add_prefix` | | The prefix that needs to be added to the final path. Default: `""` (no adding). |
 | `priority` | | The priority of this Route. Default: `0`. Routes will be matched from highest priority to lowest. |
 | `plugins` | | A list of plugins applied to this Route. Default: `[]`. Similar to Kong's [Plugin Object](https://docs.konghq.com/2.2.x/admin-api/#plugin-object). |
 
