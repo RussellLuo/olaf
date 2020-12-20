@@ -260,15 +260,15 @@ func canaryReverseProxy(p *olaf.TenantCanaryPlugin, services map[string]*olaf.Se
 	var idVar string
 	switch p.Config.TenantIDLocation {
 	case "path":
-		idVar = fmt.Sprintf("int({http.request.uri.path.%s})", name)
+		idVar = fmt.Sprintf("{http.request.uri.path.%s}", name)
 	case "query":
-		idVar = fmt.Sprintf("int({http.request.uri.query.%s})", name)
+		idVar = fmt.Sprintf("{http.request.uri.query.%s}", name)
 	case "header":
-		idVar = fmt.Sprintf("int({http.request.header.%s})", name)
+		idVar = fmt.Sprintf("{http.request.header.%s}", name)
 	case "cookie":
-		idVar = fmt.Sprintf("int({http.request.cookie.%s})", name)
+		idVar = fmt.Sprintf("{http.request.cookie.%s}", name)
 	case "body":
-		idVar = fmt.Sprintf("int({http.request.body.%s})", name)
+		idVar = fmt.Sprintf("{http.request.body.%s}", name)
 		canaryFieldInBody = true
 	default:
 		panic(fmt.Errorf("tenant-id location %q of plugin %q is invalid", p.Config.TenantIDLocation, p.Name))
