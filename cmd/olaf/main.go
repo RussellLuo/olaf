@@ -52,7 +52,7 @@ func main() {
 
 	appx.MustRegister(
 		appx.New("Caddy-reloader").InitFunc(func(ctx appx.Context) error {
-			c := reloader.NewReloader(store, 5*time.Second)
+			c := reloader.New(store, 5*time.Second)
 			ctx.Lifecycle.Append(appx.Hook{
 				OnStart: func(context.Context) error {
 					go c.Start()

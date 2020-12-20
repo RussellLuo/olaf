@@ -31,7 +31,7 @@ type Reloader struct {
 	exitC chan struct{}
 }
 
-func NewReloader(loader Loader, interval time.Duration) *Reloader {
+func New(loader Loader, interval time.Duration) *Reloader {
 	return &Reloader{
 		loader:   loader,
 		interval: interval,
