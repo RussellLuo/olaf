@@ -25,7 +25,8 @@ services:
         # path "/bar/1?tid=5" will be routed to service `staging`
         tenant_id_location: query
         tenant_id_name: tid
-        tenant_id_whitelist: int($) > 0 && int($) <= 10 # `$` represents the value of tid
+        tenant_id_type: int
+        tenant_id_whitelist: $ > 0 && $ <= 10 # `$` represents the value of tid
         upstream_service_name: staging
 
 - name: staging

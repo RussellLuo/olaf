@@ -19,7 +19,7 @@ func TestCanaryExpression(t *testing.T) {
 					UpstreamServiceName: "staging",
 					TenantIDLocation:    "path",
 					TenantIDName:        "0",
-					TenantIDWhitelist:   "int($) > 0 && int($) <= 10",
+					TenantIDWhitelist:   `$.startsWith("tid")`,
 				},
 			},
 			inServices: map[string]*olaf.Service{
@@ -28,7 +28,7 @@ func TestCanaryExpression(t *testing.T) {
 					URL:  "localhost:8080",
 				},
 			},
-			wantMatchExpression: "int({http.request.uri.path.0}) > 0 && int({http.request.uri.path.0}) <= 10",
+			wantMatchExpression: `{http.request.uri.path.0}.startsWith("tid")`,
 		},
 		{
 			inPlugin: &olaf.TenantCanaryPlugin{
@@ -36,7 +36,8 @@ func TestCanaryExpression(t *testing.T) {
 					UpstreamServiceName: "staging",
 					TenantIDLocation:    "query",
 					TenantIDName:        "tid",
-					TenantIDWhitelist:   "int($) > 0 && int($) <= 10",
+					TenantIDType:        "int",
+					TenantIDWhitelist:   "$ > 0 && $ <= 10",
 				},
 			},
 			inServices: map[string]*olaf.Service{
@@ -53,7 +54,8 @@ func TestCanaryExpression(t *testing.T) {
 					UpstreamServiceName: "staging",
 					TenantIDLocation:    "body",
 					TenantIDName:        "tid",
-					TenantIDWhitelist:   "int($) > 0 && int($) <= 10",
+					TenantIDType:        "int",
+					TenantIDWhitelist:   "$ > 0 && $ <= 10",
 				},
 			},
 			inServices: map[string]*olaf.Service{

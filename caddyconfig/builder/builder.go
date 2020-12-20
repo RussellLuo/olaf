@@ -273,6 +273,11 @@ func canaryReverseProxy(p *olaf.TenantCanaryPlugin, services map[string]*olaf.Se
 		panic(fmt.Errorf("tenant-id location %q of plugin %q is invalid", p.Config.TenantIDLocation, p.Name))
 	}
 
+	// Do the type conversion if specified.
+	if p.Config.TenantIDType != "" {
+		idVar = fmt.Sprintf("%s(%s)", p.Config.TenantIDType, idVar)
+	}
+
 	if p.Config.TenantIDWhitelist == "" {
 		panic(fmt.Errorf("tenant-id whitelist of plugin %q is empty", p.Name))
 	}

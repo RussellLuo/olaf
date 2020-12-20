@@ -86,9 +86,9 @@ type TenantCanaryPlugin struct {
 type TenantCanaryConfig struct {
 	UpstreamServiceName string `json:"upstream_service_name" yaml:"upstream_service_name"`
 
-	// query, path, header, body
 	TenantIDLocation  string `json:"tenant_id_location" yaml:"tenant_id_location"`
 	TenantIDName      string `json:"tenant_id_name" yaml:"tenant_id_name"`
+	TenantIDType      string `json:"tenant_id_type" yaml:"tenant_id_type"`
 	TenantIDWhitelist string `json:"tenant_id_whitelist" yaml:"tenant_id_whitelist"`
 }
 
