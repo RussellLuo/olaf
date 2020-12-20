@@ -195,9 +195,8 @@ func buildSubRoutes(r *olaf.Route, services map[string]*olaf.Service, p map[stri
 		})
 	}
 
-	for _, rr := range canaryRoutes {
-		routes = append(routes, rr)
-	}
+	// Canary reverse-proxy routes must come before normal reverse-proxy routes.
+	routes = append(routes, canaryRoutes...)
 
 	routes = append(routes, reverseProxy(service, ""))
 	return

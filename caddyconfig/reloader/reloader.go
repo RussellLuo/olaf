@@ -41,10 +41,12 @@ func NewReloader(loader Loader, interval time.Duration) *Reloader {
 }
 
 func (r *Reloader) Start() {
-	tickC := time.Tick(r.interval)
+	ticker := time.NewTicker(r.interval)
+	defer ticker.Stop()
+
 	for {
 		select {
-		case <-tickC:
+		case <-ticker.C:
 			data, err := r.loader.Load(r.lastSynced)
 			if err != nil {
 				if err != olaf.ErrDataUnmodified {

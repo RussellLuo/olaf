@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"sync"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -17,7 +16,6 @@ import (
 type Store struct {
 	filename string
 
-	mu   sync.Mutex
 	data *olaf.Data
 }
 
