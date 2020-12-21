@@ -103,6 +103,14 @@ $ ./caddy run --config olaf.yaml --adapter olaf
 
 ### Reload Config
 
+Don't run, just test the configuration:
+
+```bash
+$ ./caddy adapt --config olaf.yaml --adapter olaf --validate > /dev/null
+```
+
+Reload the configuration:
+
 ```bash
 $ ./caddy reload --config olaf.yaml --adapter olaf
 ```
