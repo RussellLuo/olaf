@@ -27,6 +27,7 @@ type Server struct {
 	HTTPSPort        int      `json:"https_port" yaml:"https_port"`
 	EnableAutoHTTPS  bool     `json:"enable_auto_https" yaml:"enable_auto_https"`
 	DisableAccessLog bool     `json:"disable_access_log" yaml:"disable_access_log"`
+	EnableDebug      bool     `json:"enable_debug" yaml:"enable_debug"`
 }
 
 func (s *Server) Init() {

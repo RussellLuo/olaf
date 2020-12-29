@@ -23,6 +23,8 @@ const (
 
 	networkTCP  = "tcp"
 	networkUnix = "unix"
+
+	loggerName = "log0"
 )
 
 func Build(data *olaf.Data) (conf map[string]interface{}, err error) {
@@ -49,10 +51,8 @@ func Build(data *olaf.Data) (conf map[string]interface{}, err error) {
 		},
 	}
 
-	// Add the logging settings if access-log is enabled.
-	if !data.Server.DisableAccessLog {
-		conf["logging"] = buildLoggingConfig()
-	}
+	// Add the logging settings.
+	conf["logging"] = buildLoggingConfig(data.Server.DisableAccessLog, data.Server.EnableDebug)
 
 	return
 }
@@ -463,7 +463,7 @@ func buildServers(addrs []string, enableAutoHTTPS, disableAccessLog bool, routes
 		// Add the logging settings if access-log is enabled.
 		if !disableAccessLog {
 			conf["logs"] = map[string]string{
-				"default_logger_name": "log0",
+				"default_logger_name": loggerName,
 			}
 		}
 
@@ -473,22 +473,31 @@ func buildServers(addrs []string, enableAutoHTTPS, disableAccessLog bool, routes
 	return servers
 }
 
-func buildLoggingConfig() map[string]interface{} {
+func buildLoggingConfig(disableAccessLog, enableDebug bool) map[string]interface{} {
+	level := "INFO"
+	if enableDebug {
+		level = "DEBUG"
+	}
+	defaultLog := map[string]interface{}{
+		"level": level,
+	}
+	logs := map[string]interface{}{
+		"default": defaultLog,
+	}
+
+	// if access-log is enabled.
+	if !disableAccessLog {
+		accessLoggerName := "http.log.access." + loggerName
+		defaultLog["exclude"] = []string{accessLoggerName}
+		logs[loggerName] = map[string]interface{}{
+			"include": []string{accessLoggerName},
+			"writer": map[string]string{
+				"output": "stdout",
+			},
+		}
+	}
+
 	return map[string]interface{}{
-		"logs": map[string]interface{}{
-			"default": map[string]interface{}{
-				"exclude": []string{
-					"http.log.access.log0",
-				},
-			},
-			"log0": map[string]interface{}{
-				"include": []string{
-					"http.log.access.log0",
-				},
-				"writer": map[string]string{
-					"output": "stdout",
-				},
-			},
-		},
+		"logs": logs,
 	}
 }
