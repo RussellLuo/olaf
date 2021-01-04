@@ -30,6 +30,19 @@ The Server entity:
 | `enable_auto_https` | | Whether to enable [automatic HTTPS](https://caddyserver.com/docs/json/apps/http/servers/automatic_https/), Default: `false`. |
 | `disable_access_log` | | Whether to disable [access logs](https://caddyserver.com/docs/caddyfile/directives/log). Default: `false`. |
 | `enable_debug` | | Whether to enable debug mode, which sets all log levels to DEBUG (use only for debugging). Default: `false`. |
+| `before_responses` | | A list of StaticResponses, which will be matched before all the services' routes. |
+| `after_responses` | | A list of StaticResponses, which will be matched after all the services' routes. |
+
+The [StaticResponse](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/static_response/) entity:
+
+| Attribute | Required | Description |
+| --- | --- | --- |
+| `methods` | | A list of [HTTP methods](https://caddyserver.com/docs/caddyfile/matchers#method) that match this Route. Default: `[]` (any HTTP method). |
+| `hosts` | | A list of [hosts](https://caddyserver.com/docs/caddyfile/matchers#host) that match this Route. Default: `[]` (any host). |
+| `paths` | | A list of [URI paths](https://caddyserver.com/docs/caddyfile/matchers#path) that match this Route. A special prefix `~:` means a [regexp path](https://caddyserver.com/docs/caddyfile/matchers#path-regexp). Default: `["/*"]`. |
+| `status_code` | | The HTTP status code to write. Default: `200`. |
+| `body` | | The response body to write. Default: "" (no response body) |
+| `close` | | Whether to close the client's connection to the server after writing the response. Default: `false`. |
 
 The Service entity:
 
@@ -53,7 +66,7 @@ The Route entity:
 | `strip_prefix` | | The prefix that needs to be stripped from the original path. Default: `""` (no stripping). |
 | `add_prefix` | | The prefix that needs to be added to the final path. Default: `""` (no adding). |
 | `priority` | | The priority of this Route. Default: `0`. Routes will be matched from highest priority to lowest. |
-| `plugins` | | A list of plugins applied to this Route. Default: `[]`. Similar to Kong's [Plugin Object](https://docs.konghq.com/2.2.x/admin-api/#plugin-object). |
+| `plugins` | | A list of Plugins applied to this Route. Default: `[]`. Similar to Kong's [Plugin Object](https://docs.konghq.com/2.2.x/admin-api/#plugin-object). |
 
 The Plugin entity:
 

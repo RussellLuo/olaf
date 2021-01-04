@@ -21,13 +21,33 @@ var (
 	ErrDataUnmodified = errors.New("data unmodified")
 )
 
+type StaticResponse struct {
+	Methods    []string `json:"methods" yaml:"methods"`
+	Hosts      []string `json:"hosts" yaml:"hosts"`
+	Paths      []string `json:"paths" yaml:"paths"`
+	StatusCode int      `json:"status_code" yaml:"status_code"`
+	Body       string   `json:"body" yaml:"body"`
+	Close      bool     `json:"close" yaml:"close"`
+}
+
+func (ss *StaticResponse) Init() {
+	if len(ss.Paths) == 0 {
+		ss.Paths = []string{"/*"}
+	}
+	if ss.StatusCode == 0 {
+		ss.StatusCode = 200
+	}
+}
+
 type Server struct {
-	Listen           []string `json:"listen" yaml:"listen"`
-	HTTPPort         int      `json:"http_port" yaml:"http_port"`
-	HTTPSPort        int      `json:"https_port" yaml:"https_port"`
-	EnableAutoHTTPS  bool     `json:"enable_auto_https" yaml:"enable_auto_https"`
-	DisableAccessLog bool     `json:"disable_access_log" yaml:"disable_access_log"`
-	EnableDebug      bool     `json:"enable_debug" yaml:"enable_debug"`
+	Listen           []string          `json:"listen" yaml:"listen"`
+	HTTPPort         int               `json:"http_port" yaml:"http_port"`
+	HTTPSPort        int               `json:"https_port" yaml:"https_port"`
+	EnableAutoHTTPS  bool              `json:"enable_auto_https" yaml:"enable_auto_https"`
+	DisableAccessLog bool              `json:"disable_access_log" yaml:"disable_access_log"`
+	EnableDebug      bool              `json:"enable_debug" yaml:"enable_debug"`
+	BeforeResponses  []*StaticResponse `json:"before_responses" yaml:"before_responses"`
+	AfterResponses   []*StaticResponse `json:"after_responses" yaml:"after_responses"`
 }
 
 func (s *Server) Init() {
@@ -43,6 +63,13 @@ func (s *Server) Init() {
 	}
 	if s.HTTPSPort == 0 {
 		s.HTTPSPort = 443
+	}
+
+	for _, ss := range s.BeforeResponses {
+		ss.Init()
+	}
+	for _, ss := range s.AfterResponses {
+		ss.Init()
 	}
 }
 

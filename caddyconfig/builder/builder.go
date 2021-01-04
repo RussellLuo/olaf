@@ -61,6 +61,15 @@ func buildCaddyRoutes(data *olaf.Data) (routes []map[string]interface{}) {
 	services := data.Services
 	plugins := data.Plugins
 
+	// Build the routes for static before-responses, which will be matched
+	// before all the services' routes.
+	for _, r := range data.Server.BeforeResponses {
+		routes = append(routes, map[string]interface{}{
+			"match":  buildRouteMatches(r.Methods, r.Hosts, r.Paths),
+			"handle": buildStaticResponse(r.StatusCode, r.Body, r.Close),
+		})
+	}
+
 	// Build the routes from highest priority to lowest.
 	// The route that has a higher priority will be matched earlier.
 	for _, r := range sortRoutes(data.Routes) {
@@ -69,7 +78,7 @@ func buildCaddyRoutes(data *olaf.Data) (routes []map[string]interface{}) {
 		}
 
 		routes = append(routes, map[string]interface{}{
-			"match": buildRouteMatches(r),
+			"match": buildRouteMatches(r.Methods, r.Hosts, r.Paths),
 			"handle": []map[string]interface{}{
 				{
 					"handler": "subroute",
@@ -79,16 +88,30 @@ func buildCaddyRoutes(data *olaf.Data) (routes []map[string]interface{}) {
 		})
 	}
 
-	routes = append(routes, map[string]interface{}{
-		// Respond 404 for all unmatched routes.
-		"handle": []map[string]interface{}{
-			{
-				"handler":     "static_response",
-				"status_code": 404,
-			},
-		},
-	})
+	// Build the routes for static after-responses, which will be matched
+	// after all the services' routes.
+	for _, r := range data.Server.AfterResponses {
+		routes = append(routes, map[string]interface{}{
+			"match":  buildRouteMatches(r.Methods, r.Hosts, r.Paths),
+			"handle": buildStaticResponse(r.StatusCode, r.Body, r.Close),
+		})
+	}
+
 	return
+}
+
+func buildStaticResponse(statusCode int, body string, close bool) []map[string]interface{} {
+	m := map[string]interface{}{
+		"handler":     "static_response",
+		"status_code": statusCode,
+	}
+	if body != "" {
+		m["body"] = body
+	}
+	if close {
+		m["close"] = close
+	}
+	return []map[string]interface{}{m}
 }
 
 // sortRoutes sorts the given routes from highest priority to lowest.
@@ -104,47 +127,47 @@ func sortRoutes(r map[string]*olaf.Route) (routes []*olaf.Route) {
 	return
 }
 
-func buildRouteMatches(r *olaf.Route) (matches []map[string]interface{}) {
-	// Differentiate regexp paths from normal paths
-	var paths []string
-	rePaths := make(map[string]string)
-	for _, p := range r.Paths {
+func buildRouteMatches(methods, hosts, paths []string) (matches []map[string]interface{}) {
+	// Differentiate regexp paths from normal paths.
+	var normalPaths []string
+	regexPaths := make(map[string]string)
+	for _, p := range paths {
 		result := reRegexpPath.FindStringSubmatch(p)
 		if len(result) > 0 {
 			name, path := result[1], result[2]
-			rePaths[path] = name // We assume that name is globally unique if non-empty
+			regexPaths[path] = name // We assume that name is globally unique if non-empty
 		} else {
-			paths = append(paths, p)
+			normalPaths = append(normalPaths, p)
 		}
 	}
 
-	// Build a match for normal paths
-	if len(paths) > 0 {
+	// Build a match for normal paths.
+	if len(normalPaths) > 0 {
 		m := map[string]interface{}{
-			"path": paths,
+			"path": normalPaths,
 		}
-		if len(r.Methods) > 0 {
-			m["method"] = r.Methods
+		if len(methods) > 0 {
+			m["method"] = methods
 		}
-		if len(r.Hosts) > 0 {
-			m["host"] = r.Hosts
+		if len(hosts) > 0 {
+			m["host"] = hosts
 		}
 		matches = append(matches, m)
 	}
 
-	// Build matches for regexp paths
-	for p, n := range rePaths {
+	// Build matches for regexp paths.
+	for p, n := range regexPaths {
 		m := map[string]interface{}{
 			"path_regexp": map[string]string{
 				"name":    n,
 				"pattern": p,
 			},
 		}
-		if len(r.Methods) > 0 {
-			m["method"] = r.Methods
+		if len(methods) > 0 {
+			m["method"] = methods
 		}
-		if len(r.Hosts) > 0 {
-			m["host"] = r.Hosts
+		if len(hosts) > 0 {
+			m["host"] = hosts
 		}
 		matches = append(matches, m)
 	}
