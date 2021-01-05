@@ -37,11 +37,11 @@ The [StaticResponse](https://caddyserver.com/docs/json/apps/http/servers/routes/
 
 | Attribute | Required | Description |
 | --- | --- | --- |
-| `methods` | | A list of [HTTP methods](https://caddyserver.com/docs/caddyfile/matchers#method) that match this Route. Default: `[]` (any HTTP method). |
-| `hosts` | | A list of [hosts](https://caddyserver.com/docs/caddyfile/matchers#host) that match this Route. Default: `[]` (any host). |
-| `paths` | | A list of [URI paths](https://caddyserver.com/docs/caddyfile/matchers#path) that match this Route. A special prefix `~:` means a [regexp path](https://caddyserver.com/docs/caddyfile/matchers#path-regexp). Default: `["/*"]`. |
+| `methods` | | A list of [HTTP methods](https://caddyserver.com/docs/caddyfile/matchers#method) that match this StaticResponse. Default: `[]` (any HTTP method). |
+| `hosts` | | A list of [hosts](https://caddyserver.com/docs/caddyfile/matchers#host) that match this StaticResponse. Default: `[]` (any host). |
+| `paths` | | A list of [URI paths](https://caddyserver.com/docs/caddyfile/matchers#path) that match this StaticResponse. A special prefix `~:` means a [regexp path](https://caddyserver.com/docs/caddyfile/matchers#path-regexp). Default: `["/*"]`. |
 | `status_code` | | The HTTP status code to write. Default: `200`. |
-| `body` | | The response body to write. Default: "" (no response body) |
+| `body` | | The response body to write. Default: `""` (no response body). |
 | `close` | | Whether to close the client's connection to the server after writing the response. Default: `false`. |
 
 The Service entity:
