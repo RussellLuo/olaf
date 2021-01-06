@@ -40,8 +40,9 @@ The [StaticResponse](https://caddyserver.com/docs/json/apps/http/servers/routes/
 | `methods` | | A list of [HTTP methods](https://caddyserver.com/docs/caddyfile/matchers#method) that match this StaticResponse. Default: `[]` (any HTTP method). |
 | `hosts` | | A list of [hosts](https://caddyserver.com/docs/caddyfile/matchers#host) that match this StaticResponse. Default: `[]` (any host). |
 | `paths` | | A list of [URI paths](https://caddyserver.com/docs/caddyfile/matchers#path) that match this StaticResponse. A special prefix `~:` means a [regexp path](https://caddyserver.com/docs/caddyfile/matchers#path-regexp). Default: `["/*"]`. |
-| `status_code` | | The HTTP status code to write. Default: `200`. |
-| `body` | | The response body to write. Default: `""` (no response body). |
+| `status_code` | | The HTTP status code to respond with. Default: `200`. |
+| `headers` | | The header fields to set on the response. Default: `{}` (no extra header fields). |
+| `body` | | The response body to respond with. Default: `""` (no response body). |
 | `close` | | Whether to close the client's connection to the server after writing the response. Default: `false`. |
 
 The Service entity:

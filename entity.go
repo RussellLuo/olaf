@@ -22,12 +22,13 @@ var (
 )
 
 type StaticResponse struct {
-	Methods    []string `json:"methods" yaml:"methods"`
-	Hosts      []string `json:"hosts" yaml:"hosts"`
-	Paths      []string `json:"paths" yaml:"paths"`
-	StatusCode int      `json:"status_code" yaml:"status_code"`
-	Body       string   `json:"body" yaml:"body"`
-	Close      bool     `json:"close" yaml:"close"`
+	Methods    []string            `json:"methods" yaml:"methods"`
+	Hosts      []string            `json:"hosts" yaml:"hosts"`
+	Paths      []string            `json:"paths" yaml:"paths"`
+	StatusCode int                 `json:"status_code" yaml:"status_code"`
+	Headers    map[string][]string `json:"headers" yaml:"headers"`
+	Body       string              `json:"body" yaml:"body"`
+	Close      bool                `json:"close" yaml:"close"`
 }
 
 func (ss *StaticResponse) Init() {

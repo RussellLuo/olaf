@@ -66,7 +66,7 @@ func buildCaddyRoutes(data *olaf.Data) (routes []map[string]interface{}) {
 	for _, r := range data.Server.BeforeResponses {
 		routes = append(routes, map[string]interface{}{
 			"match":  buildRouteMatches(r.Methods, r.Hosts, r.Paths),
-			"handle": buildStaticResponse(r.StatusCode, r.Body, r.Close),
+			"handle": buildStaticResponse(r.StatusCode, r.Headers, r.Body, r.Close),
 		})
 	}
 
@@ -93,17 +93,20 @@ func buildCaddyRoutes(data *olaf.Data) (routes []map[string]interface{}) {
 	for _, r := range data.Server.AfterResponses {
 		routes = append(routes, map[string]interface{}{
 			"match":  buildRouteMatches(r.Methods, r.Hosts, r.Paths),
-			"handle": buildStaticResponse(r.StatusCode, r.Body, r.Close),
+			"handle": buildStaticResponse(r.StatusCode, r.Headers, r.Body, r.Close),
 		})
 	}
 
 	return
 }
 
-func buildStaticResponse(statusCode int, body string, close bool) []map[string]interface{} {
+func buildStaticResponse(statusCode int, headers map[string][]string, body string, close bool) []map[string]interface{} {
 	m := map[string]interface{}{
 		"handler":     "static_response",
 		"status_code": statusCode,
+	}
+	if len(headers) > 0 {
+		m["headers"] = headers
 	}
 	if body != "" {
 		m["body"] = body
