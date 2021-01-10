@@ -1,6 +1,13 @@
 server:
   listen:
   - :6666
+  before_responses:
+  - methods: # Write a 200 status with an empty body for all health checks
+    - GET
+    paths:
+    - /health-check
+  after_responses:
+  - status_code: 404 # Write a 404 status with an empty body for all unmatched routes
 
 services:
 - name: production
