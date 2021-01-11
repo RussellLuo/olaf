@@ -358,17 +358,18 @@ func buildUpstream(url string, maxRequests int) map[string]interface{} {
 	// Special validation logic for TCP addresses to dial.
 	// See https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/upstreams/dial#docs
 	if na.Network == networkTCP {
+		// A TCP address must have a host and a port.
 		s := strings.SplitN(na.Address, ":", 2)
-		if len(s) != 2 { // TCP address to dial must have a host and a port
-			panic(fmt.Errorf("invalid TCP address: %q", url))
-		}
-		if strings.Contains(s[1], "-") { // TCP address to dial can not use port ranges
+		port := s[1]
+
+		// TCP address to dial can not use port ranges
+		if strings.Contains(port, "-") {
 			panic(fmt.Errorf("invalid TCP address: %q", url))
 		}
 	}
 
 	m := map[string]interface{}{
-		"dial": url,
+		"dial": na.Address,
 	}
 
 	if maxRequests > 0 {
@@ -378,6 +379,7 @@ func buildUpstream(url string, maxRequests int) map[string]interface{} {
 	return m
 }
 
+// TODO: Use caddy.NetworkAddress directly.
 type netAddr struct {
 	Network string
 	Address string
@@ -388,7 +390,7 @@ func newNetAddr(s string) (na netAddr, err error) {
 	switch {
 	case strings.HasPrefix(s, networkPrefixTCP):
 		na.Network = networkTCP
-		na.Address = strings.TrimPrefix(s, networkPrefixTCP)
+		na.Address = addDefaultPort(strings.TrimPrefix(s, networkPrefixTCP))
 
 		if na.Address == "" || !reTCPAddressFormat.MatchString(na.Address) {
 			return na, fmt.Errorf("invalid TCP address: %q", s)
@@ -404,7 +406,7 @@ func newNetAddr(s string) (na netAddr, err error) {
 		}
 	default: // tcp
 		na.Network = networkTCP
-		na.Address = s
+		na.Address = addDefaultPort(s)
 
 		if na.Address == "" || !reTCPAddressFormat.MatchString(na.Address) {
 			return na, fmt.Errorf("invalid TCP address: %q", s)
@@ -412,6 +414,16 @@ func newNetAddr(s string) (na netAddr, err error) {
 	}
 
 	return
+}
+
+func addDefaultPort(addr string) string {
+	if addr == "" || strings.Contains(addr, ":") {
+		// Return addr as is.
+		return addr
+	}
+
+	// Add a default port if not specified.
+	return addr + ":80"
 }
 
 func buildServers(addrs []string, enableAutoHTTPS, disableAccessLog bool, routes []map[string]interface{}) map[string]interface{} {
@@ -424,14 +436,11 @@ func buildServers(addrs []string, enableAutoHTTPS, disableAccessLog bool, routes
 
 		switch na.Network {
 		case networkTCP:
+			// A TCP address must have a host and a port.
 			s := strings.SplitN(na.Address, ":", 2)
-			host := s[0]
+			host, port := s[0], s[1]
 
-			listen := ":80"
-			if len(s) == 2 {
-				listen = ":" + s[1]
-			}
-
+			listen := ":" + port
 			listenHosts[listen] = append(listenHosts[listen], host)
 		case networkUnix:
 			// Unix domain socket has no host.
