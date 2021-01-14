@@ -30,8 +30,19 @@ The Server entity:
 | `enable_auto_https` | | Whether to enable [automatic HTTPS](https://caddyserver.com/docs/json/apps/http/servers/automatic_https/), Default: `false`. |
 | `disable_access_log` | | Whether to disable [access logs](https://caddyserver.com/docs/caddyfile/directives/log). Default: `false`. |
 | `enable_debug` | | Whether to enable debug mode, which sets all log levels to DEBUG (use only for debugging). Default: `false`. |
+| `admin` | | The config of Caddy's API endpoint, which is used to manage Caddy while it is running. |
 | `before_responses` | | A list of StaticResponses, which will be matched before all the services' routes. |
 | `after_responses` | | A list of StaticResponses, which will be matched after all the services' routes. |
+
+The [Admin](https://caddyserver.com/docs/json/admin/) entity:
+
+| Attribute | Required | Description |
+| --- | --- | --- |
+| `disabled` | | Whether to disable the admin endpoint completely. Default: `false`. |
+| `listen` | | The address to which the admin endpoint's listener should bind itself. Default: `"localhost:2019"`. |
+| `enforce_origin` | | See [docs](https://caddyserver.com/docs/json/admin/enforce_origin/). |
+| `origins` | | See [docs](https://caddyserver.com/docs/json/admin/origins/). |
+| `nonpersistent` | | Whether to keep a copy of the active config on disk. Default: `false` (keep a copy). |
 
 The [StaticResponse](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/static_response/) entity:
 
@@ -74,7 +85,7 @@ The Plugin entity:
 | Attribute | Required | Description |
 | --- | --- | --- |
 | `name` | | The name of this Plugin. Default: `"plugin_<i>"` for global plugins, `"<service_name>_plugin_<i>"` for service plugins, or `"<route_name>_plugin_<i>"` for route plugins (`<i>` is the index of this plugin in the array). |
-| `enabled` | | Whether this Plugin is applied. Default: `false` |
+| `enabled` | | Whether this Plugin is enabled. Default: `false` |
 | `config` | √ | The configuration of this Plugin. |
 
 The Config of the Tenant Canary Plugin:

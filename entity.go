@@ -40,6 +40,20 @@ func (ss *StaticResponse) Init() {
 	}
 }
 
+type Admin struct {
+	Disabled      bool     `json:"disabled" yaml:"disabled"`
+	Listen        string   `json:"listen" yaml:"listen"`
+	EnforceOrigin bool     `json:"enforce_origin" yaml:"enforce_origin"`
+	Origins       []string `json:"origins" yaml:"origins"`
+	Nonpersistent bool     `json:"nonpersistent" yaml:"nonpersistent"`
+}
+
+func (a *Admin) Init() {
+	if a.Listen == "" {
+		a.Listen = "localhost:2019"
+	}
+}
+
 type Server struct {
 	Listen           []string          `json:"listen" yaml:"listen"`
 	HTTPPort         int               `json:"http_port" yaml:"http_port"`
@@ -47,6 +61,7 @@ type Server struct {
 	EnableAutoHTTPS  bool              `json:"enable_auto_https" yaml:"enable_auto_https"`
 	DisableAccessLog bool              `json:"disable_access_log" yaml:"disable_access_log"`
 	EnableDebug      bool              `json:"enable_debug" yaml:"enable_debug"`
+	Admin            Admin             `json:"admin" yaml:"admin"`
 	BeforeResponses  []*StaticResponse `json:"before_responses" yaml:"before_responses"`
 	AfterResponses   []*StaticResponse `json:"after_responses" yaml:"after_responses"`
 }
@@ -65,6 +80,8 @@ func (s *Server) Init() {
 	if s.HTTPSPort == 0 {
 		s.HTTPSPort = 443
 	}
+
+	s.Admin.Init()
 
 	for _, ss := range s.BeforeResponses {
 		ss.Init()

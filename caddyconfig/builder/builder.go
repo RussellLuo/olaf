@@ -51,6 +51,9 @@ func Build(data *olaf.Data) (conf map[string]interface{}, err error) {
 		},
 	}
 
+	// Add the admin settings.
+	conf["admin"] = buildAdminConfig(&data.Server.Admin)
+
 	// Add the logging settings.
 	conf["logging"] = buildLoggingConfig(data.Server.DisableAccessLog, data.Server.EnableDebug)
 
@@ -506,6 +509,27 @@ func buildServers(addrs []string, enableAutoHTTPS, disableAccessLog bool, routes
 	}
 
 	return servers
+}
+
+func buildAdminConfig(admin *olaf.Admin) map[string]interface{} {
+	m := map[string]interface{}{
+		"listen": admin.Listen,
+		"config": map[string]bool{
+			"persist": !admin.Nonpersistent,
+		},
+	}
+
+	if admin.Disabled {
+		m["disabled"] = admin.Disabled
+	}
+	if admin.EnforceOrigin {
+		m["enforce_origin"] = admin.EnforceOrigin
+	}
+	if len(admin.Origins) > 0 {
+		m["origins"] = admin.Origins
+	}
+
+	return m
 }
 
 func buildLoggingConfig(disableAccessLog, enableDebug bool) map[string]interface{} {
