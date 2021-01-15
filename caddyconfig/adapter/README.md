@@ -28,11 +28,30 @@ The Server entity:
 | `http_port` | | The port to use for [HTTP](https://caddyserver.com/docs/json/apps/http/http_port/). Default: `80`. |
 | `https_port` | | The port to use for [HTTPS](https://caddyserver.com/docs/json/apps/http/https_port/). Default: `443`. |
 | `enable_auto_https` | | Whether to enable [automatic HTTPS](https://caddyserver.com/docs/json/apps/http/servers/automatic_https/), Default: `false`. |
-| `disable_access_log` | | Whether to disable [access logs](https://caddyserver.com/docs/caddyfile/directives/log). Default: `false`. |
 | `enable_debug` | | Whether to enable debug mode, which sets all log levels to DEBUG (use only for debugging). Default: `false`. |
-| `admin` | | The config of Caddy's API endpoint, which is used to manage Caddy while it is running. |
+| `access_log` | | The config of Caddy's AccessLog. |
+| `admin` | | The config of Caddy's admin endpoint, which is used to manage Caddy while it is running. |
 | `before_responses` | | A list of StaticResponses, which will be matched before all the services' routes. |
 | `after_responses` | | A list of StaticResponses, which will be matched after all the services' routes. |
+
+The [AccessLog](https://caddyserver.com/docs/caddyfile/directives/log) entity:
+
+| Attribute | Required | Description |
+| --- | --- | --- |
+| `disabled` | | Whether to disable this AccessLog. Default: `false`. |
+| `output` | | The config of the AccessLogOutput. |
+| `level` | | The minimum entry level to log. Default: `"INFO"`. |
+
+The [AccessLogOutput](https://caddyserver.com/docs/caddyfile/directives/log#output-modules) entity:
+
+| Attribute | Required | Description |
+| --- | --- | --- |
+| `output` | | Where to write the logs to. Default: `"stdout"`. |
+| `filename` | | The path to the log file if `output` is `"file"`. Default: `""`. |
+| `roll_disabled` | | Whether to disable log rolling. Default: `false`. |
+| `roll_size_mb` | | The size (in megabytes) at which to roll the log file. Default: `100`. |
+| `roll_keep` | | How many log files to keep before deleting the oldest ones. Default: `10`. |
+| `roll_keep_days` | | How long (in days) to keep rolled files. Default: `90`. |
 
 The [Admin](https://caddyserver.com/docs/json/admin/) entity:
 

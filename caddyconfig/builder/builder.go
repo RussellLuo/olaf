@@ -45,7 +45,7 @@ func Build(data *olaf.Data) (conf map[string]interface{}, err error) {
 				"https_port": data.Server.HTTPSPort,
 				"servers": buildServers(
 					data.Server.Listen, data.Server.EnableAutoHTTPS,
-					data.Server.DisableAccessLog, routes,
+					data.Server.AccessLog.Disabled, routes,
 				),
 			},
 		},
@@ -55,7 +55,7 @@ func Build(data *olaf.Data) (conf map[string]interface{}, err error) {
 	conf["admin"] = buildAdminConfig(&data.Server.Admin)
 
 	// Add the logging settings.
-	conf["logging"] = buildLoggingConfig(data.Server.DisableAccessLog, data.Server.EnableDebug)
+	conf["logging"] = buildLoggingConfig(data.Server.EnableDebug, &data.Server.AccessLog)
 
 	return
 }
@@ -532,8 +532,8 @@ func buildAdminConfig(admin *olaf.Admin) map[string]interface{} {
 	return m
 }
 
-func buildLoggingConfig(disableAccessLog, enableDebug bool) map[string]interface{} {
-	level := "INFO"
+func buildLoggingConfig(enableDebug bool, accessLog *olaf.AccessLog) map[string]interface{} {
+	level := accessLog.Level
 	if enableDebug {
 		level = "DEBUG"
 	}
@@ -545,18 +545,40 @@ func buildLoggingConfig(disableAccessLog, enableDebug bool) map[string]interface
 	}
 
 	// if access-log is enabled.
-	if !disableAccessLog {
+	if !accessLog.Disabled {
 		accessLoggerName := "http.log.access." + loggerName
 		defaultLog["exclude"] = []string{accessLoggerName}
 		logs[loggerName] = map[string]interface{}{
 			"include": []string{accessLoggerName},
-			"writer": map[string]string{
-				"output": "stdout",
-			},
+			"writer":  buildAccessLogWriter(&accessLog.Output),
 		}
 	}
 
 	return map[string]interface{}{
 		"logs": logs,
 	}
+}
+
+func buildAccessLogWriter(output *olaf.AccessLogOutput) map[string]interface{} {
+	writer := map[string]interface{}{
+		"output": output.Output,
+	}
+	if output.Output == "file" {
+		if output.Filename != "" {
+			writer["filename"] = output.Filename
+		}
+		if output.RollDisabled {
+			writer["roll"] = false
+		}
+		if output.RollSizeMB > 0 {
+			writer["roll_size_mb"] = output.RollSizeMB
+		}
+		if output.RollKeep > 0 {
+			writer["roll_keep"] = output.RollKeep
+		}
+		if output.RollKeepDays > 0 {
+			writer["roll_keep_days"] = output.RollKeepDays
+		}
+	}
+	return writer
 }

@@ -40,6 +40,43 @@ func (ss *StaticResponse) Init() {
 	}
 }
 
+type AccessLogOutput struct {
+	Output       string `json:"output" yaml:"output"`
+	Filename     string `json:"filename" yaml:"filename"`
+	RollDisabled bool   `json:"roll_disabled" yaml:"roll_disabled"`
+	RollSizeMB   int    `json:"roll_size_mb" yaml:"roll_size_mb"`
+	RollKeep     int    `json:"roll_keep" yaml:"roll_keep"`
+	RollKeepDays int    `json:"roll_keep_days" yaml:"roll_keep_days"`
+}
+
+func (o *AccessLogOutput) Init() {
+	if o.Output == "" {
+		o.Output = "stdout"
+	}
+	if o.RollSizeMB == 0 {
+		o.RollSizeMB = 100
+	}
+	if o.RollKeep == 0 {
+		o.RollKeep = 10
+	}
+	if o.RollKeepDays == 0 {
+		o.RollKeepDays = 90
+	}
+}
+
+type AccessLog struct {
+	Disabled bool            `json:"disabled" yaml:"disabled"`
+	Output   AccessLogOutput `json:"output" yaml:"output"`
+	Level    string          `json:"level" yaml:"level"`
+}
+
+func (a *AccessLog) Init() {
+	a.Output.Init()
+	if a.Level == "" {
+		a.Level = "INFO"
+	}
+}
+
 type Admin struct {
 	Disabled      bool     `json:"disabled" yaml:"disabled"`
 	Listen        string   `json:"listen" yaml:"listen"`
@@ -55,15 +92,15 @@ func (a *Admin) Init() {
 }
 
 type Server struct {
-	Listen           []string          `json:"listen" yaml:"listen"`
-	HTTPPort         int               `json:"http_port" yaml:"http_port"`
-	HTTPSPort        int               `json:"https_port" yaml:"https_port"`
-	EnableAutoHTTPS  bool              `json:"enable_auto_https" yaml:"enable_auto_https"`
-	DisableAccessLog bool              `json:"disable_access_log" yaml:"disable_access_log"`
-	EnableDebug      bool              `json:"enable_debug" yaml:"enable_debug"`
-	Admin            Admin             `json:"admin" yaml:"admin"`
-	BeforeResponses  []*StaticResponse `json:"before_responses" yaml:"before_responses"`
-	AfterResponses   []*StaticResponse `json:"after_responses" yaml:"after_responses"`
+	Listen          []string          `json:"listen" yaml:"listen"`
+	HTTPPort        int               `json:"http_port" yaml:"http_port"`
+	HTTPSPort       int               `json:"https_port" yaml:"https_port"`
+	EnableAutoHTTPS bool              `json:"enable_auto_https" yaml:"enable_auto_https"`
+	EnableDebug     bool              `json:"enable_debug" yaml:"enable_debug"`
+	AccessLog       AccessLog         `json:"access_log" yaml:"access_log"`
+	Admin           Admin             `json:"admin" yaml:"admin"`
+	BeforeResponses []*StaticResponse `json:"before_responses" yaml:"before_responses"`
+	AfterResponses  []*StaticResponse `json:"after_responses" yaml:"after_responses"`
 }
 
 func (s *Server) Init() {
@@ -81,6 +118,7 @@ func (s *Server) Init() {
 		s.HTTPSPort = 443
 	}
 
+	s.AccessLog.Init()
 	s.Admin.Init()
 
 	for _, ss := range s.BeforeResponses {
