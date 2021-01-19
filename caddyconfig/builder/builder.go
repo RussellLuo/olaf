@@ -550,7 +550,7 @@ func buildLoggingConfig(enableDebug bool, accessLog *olaf.AccessLog) map[string]
 		defaultLog["exclude"] = []string{accessLoggerName}
 		logs[loggerName] = map[string]interface{}{
 			"include": []string{accessLoggerName},
-			"writer":  buildAccessLogWriter(&accessLog.Output),
+			"writer":  buildLogWriter(&accessLog.Output),
 		}
 	}
 
@@ -559,7 +559,7 @@ func buildLoggingConfig(enableDebug bool, accessLog *olaf.AccessLog) map[string]
 	}
 }
 
-func buildAccessLogWriter(output *olaf.AccessLogOutput) map[string]interface{} {
+func buildLogWriter(output *olaf.LogOutput) map[string]interface{} {
 	writer := map[string]interface{}{
 		"output": output.Output,
 	}

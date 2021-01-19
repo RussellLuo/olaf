@@ -39,14 +39,14 @@ The [AccessLog](https://caddyserver.com/docs/caddyfile/directives/log) entity:
 | Attribute | Required | Description |
 | --- | --- | --- |
 | `disabled` | | Whether to disable this AccessLog. Default: `false`. |
-| `output` | | The config of the AccessLogOutput. |
+| `output` | | The config of the LogOutput. |
 | `level` | | The minimum entry level to log. Default: `"INFO"`. |
 
-The [AccessLogOutput](https://caddyserver.com/docs/caddyfile/directives/log#output-modules) entity:
+The [LogOutput](https://caddyserver.com/docs/caddyfile/directives/log#output-modules) entity:
 
 | Attribute | Required | Description |
 | --- | --- | --- |
-| `output` | | Where to write the logs to. Default: `"stdout"`. |
+| `output` | | Where to write the logs to. Default: `"stdout"` for AccessLog. |
 | `filename` | | The path to the log file if `output` is `"file"`. Default: `""`. |
 | `roll_disabled` | | Whether to disable log rolling. Default: `false`. |
 | `roll_size_mb` | | The size (in megabytes) at which to roll the log file. Default: `100`. |

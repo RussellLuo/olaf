@@ -40,7 +40,7 @@ func (ss *StaticResponse) Init() {
 	}
 }
 
-type AccessLogOutput struct {
+type LogOutput struct {
 	Output       string `json:"output" yaml:"output"`
 	Filename     string `json:"filename" yaml:"filename"`
 	RollDisabled bool   `json:"roll_disabled" yaml:"roll_disabled"`
@@ -49,10 +49,7 @@ type AccessLogOutput struct {
 	RollKeepDays int    `json:"roll_keep_days" yaml:"roll_keep_days"`
 }
 
-func (o *AccessLogOutput) Init() {
-	if o.Output == "" {
-		o.Output = "stdout"
-	}
+func (o *LogOutput) Init() {
 	if o.RollSizeMB == 0 {
 		o.RollSizeMB = 100
 	}
@@ -65,13 +62,17 @@ func (o *AccessLogOutput) Init() {
 }
 
 type AccessLog struct {
-	Disabled bool            `json:"disabled" yaml:"disabled"`
-	Output   AccessLogOutput `json:"output" yaml:"output"`
-	Level    string          `json:"level" yaml:"level"`
+	Disabled bool      `json:"disabled" yaml:"disabled"`
+	Output   LogOutput `json:"output" yaml:"output"`
+	Level    string    `json:"level" yaml:"level"`
 }
 
 func (a *AccessLog) Init() {
 	a.Output.Init()
+	if a.Output.Output == "" {
+		a.Output.Output = "stdout"
+	}
+
 	if a.Level == "" {
 		a.Level = "INFO"
 	}
