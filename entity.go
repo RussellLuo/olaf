@@ -50,6 +50,9 @@ type LogOutput struct {
 }
 
 func (o *LogOutput) Init() {
+	if o.Output == "" {
+		o.Output = "stderr"
+	}
 	if o.RollSizeMB == 0 {
 		o.RollSizeMB = 100
 	}
@@ -61,21 +64,29 @@ func (o *LogOutput) Init() {
 	}
 }
 
+type CaddyLog struct {
+	Output LogOutput `json:"output" yaml:"output"`
+	Level  string    `json:"level" yaml:"level"`
+}
+
+func (l *CaddyLog) Init() {
+	l.Output.Init()
+	if l.Level == "" {
+		l.Level = "INFO"
+	}
+}
+
 type AccessLog struct {
-	Disabled bool      `json:"disabled" yaml:"disabled"`
-	Output   LogOutput `json:"output" yaml:"output"`
-	Level    string    `json:"level" yaml:"level"`
+	Disabled bool `json:"disabled" yaml:"disabled"`
+	CaddyLog `yaml:",inline"`
 }
 
 func (a *AccessLog) Init() {
-	a.Output.Init()
-	if a.Output.Output == "" {
-		a.Output.Output = "stdout"
+	// Use `stdout` for access logs by default.
+	if a.CaddyLog.Output.Output == "" {
+		a.CaddyLog.Output.Output = "stdout"
 	}
-
-	if a.Level == "" {
-		a.Level = "INFO"
-	}
+	a.CaddyLog.Init()
 }
 
 type Admin struct {
@@ -98,6 +109,7 @@ type Server struct {
 	HTTPSPort       int               `json:"https_port" yaml:"https_port"`
 	EnableAutoHTTPS bool              `json:"enable_auto_https" yaml:"enable_auto_https"`
 	EnableDebug     bool              `json:"enable_debug" yaml:"enable_debug"`
+	DefaultLog      CaddyLog          `json:"default_log" yaml:"default_log"`
 	AccessLog       AccessLog         `json:"access_log" yaml:"access_log"`
 	Admin           Admin             `json:"admin" yaml:"admin"`
 	BeforeResponses []*StaticResponse `json:"before_responses" yaml:"before_responses"`
@@ -119,6 +131,7 @@ func (s *Server) Init() {
 		s.HTTPSPort = 443
 	}
 
+	s.DefaultLog.Init()
 	s.AccessLog.Init()
 	s.Admin.Init()
 

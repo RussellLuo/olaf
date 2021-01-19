@@ -29,10 +29,18 @@ The Server entity:
 | `https_port` | | The port to use for [HTTPS](https://caddyserver.com/docs/json/apps/http/https_port/). Default: `443`. |
 | `enable_auto_https` | | Whether to enable [automatic HTTPS](https://caddyserver.com/docs/json/apps/http/servers/automatic_https/), Default: `false`. |
 | `enable_debug` | | Whether to enable debug mode, which sets all log levels to DEBUG (use only for debugging). Default: `false`. |
+| `default_log` | | The config of Caddy's DefaultLog. |
 | `access_log` | | The config of Caddy's AccessLog. |
 | `admin` | | The config of Caddy's admin endpoint, which is used to manage Caddy while it is running. |
 | `before_responses` | | A list of StaticResponses, which will be matched before all the services' routes. |
 | `after_responses` | | A list of StaticResponses, which will be matched after all the services' routes. |
+
+The [DefaultLog](https://caddyserver.com/docs/json/logging/#docs) entity:
+
+| Attribute | Required | Description |
+| --- | --- | --- |
+| `output` | | The config of the LogOutput. |
+| `level` | | The minimum entry level to log. Default: `"INFO"`. |
 
 The [AccessLog](https://caddyserver.com/docs/caddyfile/directives/log) entity:
 
@@ -46,7 +54,7 @@ The [LogOutput](https://caddyserver.com/docs/caddyfile/directives/log#output-mod
 
 | Attribute | Required | Description |
 | --- | --- | --- |
-| `output` | | Where to write the logs to. Default: `"stdout"` for AccessLog. |
+| `output` | | Where to write the logs to. Default: `"stderr"` for DefaultLog, or `"stdout"` for AccessLog. |
 | `filename` | | The path to the log file if `output` is `"file"`. Default: `""`. |
 | `roll_disabled` | | Whether to disable log rolling. Default: `false`. |
 | `roll_size_mb` | | The size (in megabytes) at which to roll the log file. Default: `100`. |

@@ -55,7 +55,7 @@ func Build(data *olaf.Data) (conf map[string]interface{}, err error) {
 	conf["admin"] = buildAdminConfig(&data.Server.Admin)
 
 	// Add the logging settings.
-	conf["logging"] = buildLoggingConfig(data.Server.EnableDebug, &data.Server.AccessLog)
+	conf["logging"] = buildLoggingConfig(data.Server.EnableDebug, &data.Server.DefaultLog, &data.Server.AccessLog)
 
 	return
 }
@@ -532,25 +532,27 @@ func buildAdminConfig(admin *olaf.Admin) map[string]interface{} {
 	return m
 }
 
-func buildLoggingConfig(enableDebug bool, accessLog *olaf.AccessLog) map[string]interface{} {
-	level := accessLog.Level
+func buildLoggingConfig(enableDebug bool, defaultLog *olaf.CaddyLog, accessLog *olaf.AccessLog) map[string]interface{} {
+	level := defaultLog.Level
 	if enableDebug {
 		level = "DEBUG"
 	}
-	defaultLog := map[string]interface{}{
-		"level": level,
+	defaultLoggerConfig := map[string]interface{}{
+		"writer": buildLogWriter(&defaultLog.Output),
+		"level":  level,
 	}
 	logs := map[string]interface{}{
-		"default": defaultLog,
+		"default": defaultLoggerConfig,
 	}
 
 	// if access-log is enabled.
 	if !accessLog.Disabled {
 		accessLoggerName := "http.log.access." + loggerName
-		defaultLog["exclude"] = []string{accessLoggerName}
+		defaultLoggerConfig["exclude"] = []string{accessLoggerName}
 		logs[loggerName] = map[string]interface{}{
 			"include": []string{accessLoggerName},
 			"writer":  buildLogWriter(&accessLog.Output),
+			"level":   accessLog.Level,
 		}
 	}
 
