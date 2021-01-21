@@ -54,7 +54,7 @@ The [LogOutput](https://caddyserver.com/docs/caddyfile/directives/log#output-mod
 
 | Attribute | Required | Description |
 | --- | --- | --- |
-| `output` | | Where to write the logs to. Default: `"stderr"` for DefaultLog, or `"stdout"` for AccessLog. |
+| `output` | | Where to write the logs. Default: `"stderr"` for DefaultLog, or `"stdout"` for AccessLog. |
 | `filename` | | The path to the log file if `output` is `"file"`. Default: `""`. |
 | `roll_disabled` | | Whether to disable log rolling. Default: `false`. |
 | `roll_size_mb` | | The size (in megabytes) at which to roll the log file. Default: `100`. |
@@ -122,7 +122,7 @@ The Config of the Tenant Canary Plugin:
 | Attribute | Required | Description |
 | --- | --- | --- |
 | `upstream_service_name` | √ | The name of the upstream service for this Plugin. |
-| `tenant_id_location` | √ | The location of Tenant-ID in the HTTP request. Options: `"path"`, `"query"`, `"header"`, `"cookie"` or `"body"` (requires the [caddy-requestbodyvar](https://github.com/RussellLuo/caddy-requestbodyvar) extension). |
+| `tenant_id_location` | √ | The location of Tenant-ID in the HTTP request. Options: `"path"`, `"query"`, `"header"`, `"cookie"` or `"body"` (requires the [caddy-ext/requestbodyvar](https://github.com/RussellLuo/caddy-ext/tree/master/requestbodyvar) extension). |
 | `tenant_id_name` | √ | The index of the Tenant-ID part in the path (see [{http.request.uri.path.*}](https://caddyserver.com/docs/json/apps/http/#docs)), if `tenant_id_location` is `"path"`. Otherwise, the name of Tenant-ID in the request. |
 | `tenant_id_type` | | The type of Tenant-ID. Default: `""` (string). |
 | `tenant_id_whitelist` | √ | The Tenant-ID whitelist defined in a [CEL expression](https://caddyserver.com/docs/caddyfile/matchers#expression) (using `$` as a placeholder for the value of Tenant-ID). If the value of Tenant-ID is in the whitelist, the corresponding request will be routed to the service specified by `upstream_service_name`. |
@@ -147,7 +147,7 @@ Build Caddy:
 ```bash
 $ xcaddy build \
     --with github.com/RussellLuo/olaf/caddyconfig/adapter \
-    --with github.com/RussellLuo/caddy-requestbodyvar
+    --with github.com/RussellLuo/caddy-ext/requestbodyvar
 ```
 
 ### Run Caddy

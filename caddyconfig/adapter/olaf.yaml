@@ -19,8 +19,9 @@ services:
     - example.com
     paths:
     - /api/foo # original path from the client
+    # final path to service `production`: /v1/foo
     strip_prefix: /api
-    add_prefix: /v1 # final path to service `production`: /v1/foo
+    target_path: /v1$ # `$` represents the request path, which is /foo here
   - hosts:
     - example.com
     paths:
