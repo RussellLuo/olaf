@@ -197,12 +197,21 @@ func buildSubRoutes(r *olaf.Route, services map[string]*olaf.Service, p map[stri
 		})
 	}
 
-	if r.AddPrefix != "" {
+	targetPath := r.TargetPath
+	if targetPath == "" && r.AddPrefix != "" {
+		// TODO: Deprecate AddPrefix
+		// Convert AddPrefix to TargetPath for compatibility.
+		targetPath = r.AddPrefix + "$"
+	}
+	if targetPath != "" {
+		// `$` is a placeholder for the path component of the request URI,
+		// and it should occur at most once.
+		targetPath = strings.Replace(targetPath, "$", "{http.request.uri.path}", 1)
 		routes = append(routes, map[string]interface{}{
 			"handle": []map[string]string{
 				{
 					"handler": "rewrite",
-					"uri":     r.AddPrefix + "{http.request.uri}",
+					"uri":     targetPath,
 				},
 			},
 		})

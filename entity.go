@@ -162,7 +162,9 @@ type Route struct {
 
 	StripPrefix string `json:"strip_prefix" yaml:"strip_prefix"`
 	StripSuffix string `json:"strip_suffix" yaml:"strip_suffix"`
-	AddPrefix   string `json:"add_prefix" yaml:"add_prefix"`
+	TargetPath  string `json:"target_path" yaml:"target_path"`
+	// TODO: Deprecate AddPrefix
+	AddPrefix string `json:"add_prefix" yaml:"add_prefix"`
 
 	// Routes will be matched from highest priority to lowest.
 	Priority int `json:"priority" yaml:"priority"`
