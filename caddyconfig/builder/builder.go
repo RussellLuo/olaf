@@ -182,14 +182,18 @@ func buildRouteMatches(methods, hosts, paths []string) (matches []map[string]int
 }
 
 func buildSubRoutes(r *olaf.Route, services map[string]*olaf.Service, p map[string]*olaf.TenantCanaryPlugin) (routes []map[string]interface{}) {
-	if r.StripPrefix != "" {
+	if r.StripPrefix != "" || r.StripSuffix != "" {
+		stripHandler := map[string]string{
+			"handler": "rewrite",
+		}
+		if r.StripPrefix != "" {
+			stripHandler["strip_path_prefix"] = r.StripPrefix
+		}
+		if r.StripSuffix != "" {
+			stripHandler["strip_path_suffix"] = r.StripSuffix
+		}
 		routes = append(routes, map[string]interface{}{
-			"handle": []map[string]string{
-				{
-					"handler":           "rewrite",
-					"strip_path_prefix": r.StripPrefix,
-				},
-			},
+			"handle": []map[string]string{stripHandler},
 		})
 	}
 

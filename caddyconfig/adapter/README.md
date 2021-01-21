@@ -102,7 +102,8 @@ The Route entity:
 | `methods` | | A list of [HTTP methods](https://caddyserver.com/docs/caddyfile/matchers#method) that match this Route. Default: `[]` (any HTTP method). |
 | `hosts` | | A list of [hosts](https://caddyserver.com/docs/caddyfile/matchers#host) that match this Route. Default: `[]` (any host). |
 | `paths` | √ | A list of [URI paths](https://caddyserver.com/docs/caddyfile/matchers#path) that match this Route. A special prefix `~:` means a [regexp path](https://caddyserver.com/docs/caddyfile/matchers#path-regexp). |
-| `strip_prefix` | | The prefix that needs to be stripped from the original path. Default: `""` (no stripping). |
+| `strip_prefix` | | The [prefix](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/rewrite/strip_path_prefix/) that needs to be stripped from the original path. Default: `""` (no stripping). |
+| `strip_suffix` | | The [suffix](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/rewrite/strip_path_suffix/) that needs to be stripped from the original path. Default: `""` (no stripping). |
 | `add_prefix` | | The prefix that needs to be added to the final path. Default: `""` (no adding). |
 | `priority` | | The priority of this Route. Default: `0`. Routes will be matched from highest priority to lowest. |
 | `plugins` | | A list of Plugins applied to this Route. Default: `[]`. Similar to Kong's [Plugin Object](https://docs.konghq.com/2.2.x/admin-api/#plugin-object). |
