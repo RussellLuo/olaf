@@ -113,19 +113,19 @@ The Plugin entity:
 
 | Attribute | Required | Description |
 | --- | --- | --- |
+| `disabled` | | Whether this Plugin is disabled. Default: `false`. |
 | `name` | | The name of this Plugin. Default: `"plugin_<i>"` for global plugins, `"<service_name>_plugin_<i>"` for service plugins, or `"<route_name>_plugin_<i>"` for route plugins (`<i>` is the index of this plugin in the array). |
-| `enabled` | | Whether this Plugin is enabled. Default: `false` |
-| `config` | √ | The configuration of this Plugin. |
+| `type` | √ | The type of this Plugin. Built-in plugin types: `"canary"` for Canary Plugin. |
+| `config` | | The configuration of this Plugin. |
 
-The Config of the Tenant Canary Plugin:
+The Config of the Canary Plugin:
 
 | Attribute | Required | Description |
 | --- | --- | --- |
-| `upstream_service_name` | √ | The name of the upstream service for this Plugin. |
-| `tenant_id_location` | √ | The location of Tenant-ID in the HTTP request. Options: `"path"`, `"query"`, `"header"`, `"cookie"` or `"body"` (requires the [caddy-ext/requestbodyvar](https://github.com/RussellLuo/caddy-ext/tree/master/requestbodyvar) extension). |
-| `tenant_id_name` | √ | The index of the Tenant-ID part in the path (see [{http.request.uri.path.*}](https://caddyserver.com/docs/json/apps/http/#docs)), if `tenant_id_location` is `"path"`. Otherwise, the name of Tenant-ID in the request. |
-| `tenant_id_type` | | The type of Tenant-ID. Default: `""` (string). |
-| `tenant_id_whitelist` | √ | The Tenant-ID whitelist defined in a [CEL expression](https://caddyserver.com/docs/caddyfile/matchers#expression) (using `$` as a placeholder for the value of Tenant-ID). If the value of Tenant-ID is in the whitelist, the corresponding request will be routed to the service specified by `upstream_service_name`. |
+| `upstream` | √ | The name of the upstream service for this Plugin. |
+| `key` | √ | The variable used to differentiate one client from another. Currently supported variables: `"path.*"`, `"query.*"`, `"header.*"`, `"cookie.*"` or `"body.*"` (requires the [caddy-ext/requestbodyvar](https://github.com/RussellLuo/caddy-ext/tree/master/requestbodyvar) extension). |
+| `type` | | The type of key. Default: `""` (string). |
+| `whitelist` | √ | The whitelist defined in a [CEL expression](https://caddyserver.com/docs/caddyfile/matchers#expression) (using `$` as a placeholder for the value of key). If the key value is in the whitelist, the corresponding request will be routed to the service specified by `upstream`. |
 
 ### Example
 

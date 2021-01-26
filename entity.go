@@ -21,6 +21,10 @@ var (
 	ErrDataUnmodified = errors.New("data unmodified")
 )
 
+const (
+	PluginTypeCanary = "canary"
+)
+
 type StaticResponse struct {
 	Methods    []string            `json:"methods" yaml:"methods"`
 	Hosts      []string            `json:"hosts" yaml:"hosts"`
@@ -171,31 +175,27 @@ type Route struct {
 }
 
 type Plugin struct {
-	Name    string `json:"name" yaml:"name"`
-	Enabled bool   `json:"enabled" yaml:"enabled"`
+	Disabled bool `json:"disabled" yaml:"disabled"`
+
+	Name   string                 `json:"name" yaml:"name"`
+	Type   string                 `json:"type" yaml:"type"`
+	Config map[string]interface{} `json:"config" yaml:"config"`
 
 	RouteName   string `json:"route_name" yaml:"route_name"`
 	ServiceName string `json:"service_name" yaml:"service_name"`
 }
 
-type TenantCanaryPlugin struct {
-	Plugin `yaml:",inline"`
+type PluginCanaryConfig struct {
+	UpstreamServiceName string `json:"upstream" yaml:"upstream" mapstructure:"upstream"`
 
-	Config TenantCanaryConfig `json:"config" yaml:"config"`
-}
-
-type TenantCanaryConfig struct {
-	UpstreamServiceName string `json:"upstream_service_name" yaml:"upstream_service_name"`
-
-	TenantIDLocation  string `json:"tenant_id_location" yaml:"tenant_id_location"`
-	TenantIDName      string `json:"tenant_id_name" yaml:"tenant_id_name"`
-	TenantIDType      string `json:"tenant_id_type" yaml:"tenant_id_type"`
-	TenantIDWhitelist string `json:"tenant_id_whitelist" yaml:"tenant_id_whitelist"`
+	KeyName   string `json:"key" yaml:"key" mapstructure:"key"`
+	KeyType   string `json:"type" yaml:"type" mapstructure:"type"`
+	Whitelist string `json:"whitelist" yaml:"whitelist" mapstructure:"whitelist"`
 }
 
 type Data struct {
-	Server   *Server                        `json:"server" yaml:"server"`
-	Services map[string]*Service            `json:"services" yaml:"services"`
-	Routes   map[string]*Route              `json:"routes" yaml:"routes"`
-	Plugins  map[string]*TenantCanaryPlugin `json:"plugins" yaml:"plugins"`
+	Server   *Server             `json:"server" yaml:"server"`
+	Services map[string]*Service `json:"services" yaml:"services"`
+	Routes   map[string]*Route   `json:"routes" yaml:"routes"`
+	Plugins  map[string]*Plugin  `json:"plugins" yaml:"plugins"`
 }

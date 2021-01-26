@@ -10,6 +10,35 @@ import (
 	"github.com/go-kit/kit/endpoint"
 )
 
+type CreatePluginRequest struct {
+	P *olaf.Plugin `json:"p"`
+}
+
+type CreatePluginResponse struct {
+	Plugin *olaf.Plugin `json:"plugin"`
+	Err    error        `json:"-"`
+}
+
+func (r *CreatePluginResponse) Body() interface{} { return r.Plugin }
+
+// Failed implements endpoint.Failer.
+func (r *CreatePluginResponse) Failed() error { return r.Err }
+
+// MakeEndpointOfCreatePlugin creates the endpoint for s.CreatePlugin.
+func MakeEndpointOfCreatePlugin(s Admin) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(*CreatePluginRequest)
+		plugin, err := s.CreatePlugin(
+			ctx,
+			req.P,
+		)
+		return &CreatePluginResponse{
+			Plugin: plugin,
+			Err:    err,
+		}, nil
+	}
+}
+
 type CreateRouteRequest struct {
 	Route *olaf.Route `json:"route"`
 }
@@ -60,35 +89,6 @@ func MakeEndpointOfCreateService(s Admin) endpoint.Endpoint {
 		)
 		return &CreateServiceResponse{
 			Err: err,
-		}, nil
-	}
-}
-
-type CreateTenantCanaryPluginRequest struct {
-	P *olaf.TenantCanaryPlugin `json:"p"`
-}
-
-type CreateTenantCanaryPluginResponse struct {
-	Plugin *olaf.TenantCanaryPlugin `json:"plugin"`
-	Err    error                    `json:"-"`
-}
-
-func (r *CreateTenantCanaryPluginResponse) Body() interface{} { return r.Plugin }
-
-// Failed implements endpoint.Failer.
-func (r *CreateTenantCanaryPluginResponse) Failed() error { return r.Err }
-
-// MakeEndpointOfCreateTenantCanaryPlugin creates the endpoint for s.CreateTenantCanaryPlugin.
-func MakeEndpointOfCreateTenantCanaryPlugin(s Admin) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(*CreateTenantCanaryPluginRequest)
-		plugin, err := s.CreateTenantCanaryPlugin(
-			ctx,
-			req.P,
-		)
-		return &CreateTenantCanaryPluginResponse{
-			Plugin: plugin,
-			Err:    err,
 		}, nil
 	}
 }
@@ -179,8 +179,8 @@ type GetPluginRequest struct {
 }
 
 type GetPluginResponse struct {
-	Plugin *olaf.TenantCanaryPlugin `json:"plugin"`
-	Err    error                    `json:"-"`
+	Plugin *olaf.Plugin `json:"plugin"`
+	Err    error        `json:"-"`
 }
 
 func (r *GetPluginResponse) Body() interface{} { return r.Plugin }
@@ -285,8 +285,8 @@ func MakeEndpointOfGetService(s Admin) endpoint.Endpoint {
 }
 
 type ListPluginsResponse struct {
-	Plugins []*olaf.TenantCanaryPlugin `json:"plugins"`
-	Err     error                      `json:"-"`
+	Plugins []*olaf.Plugin `json:"plugins"`
+	Err     error          `json:"-"`
 }
 
 func (r *ListPluginsResponse) Body() interface{} { return r.Plugins }

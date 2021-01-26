@@ -24,7 +24,7 @@ func New(filename string) *Store {
 		data: &olaf.Data{
 			Services: make(map[string]*olaf.Service),
 			Routes:   make(map[string]*olaf.Route),
-			Plugins:  make(map[string]*olaf.TenantCanaryPlugin),
+			Plugins:  make(map[string]*olaf.Plugin),
 		},
 		filename: filename,
 	}
@@ -128,18 +128,18 @@ func (s *Store) DeleteRoute(ctx context.Context, name string) (err error) {
 	return olaf.ErrMethodNotImplemented
 }
 
-func (s *Store) CreateTenantCanaryPlugin(ctx context.Context, p *olaf.TenantCanaryPlugin) (plugin *olaf.TenantCanaryPlugin, err error) {
+func (s *Store) CreatePlugin(ctx context.Context, p *olaf.Plugin) (plugin *olaf.Plugin, err error) {
 	return nil, olaf.ErrMethodNotImplemented
 }
 
-func (s *Store) ListPlugins(ctx context.Context) (plugins []*olaf.TenantCanaryPlugin, err error) {
+func (s *Store) ListPlugins(ctx context.Context) (plugins []*olaf.Plugin, err error) {
 	for _, p := range s.data.Plugins {
 		plugins = append(plugins, p)
 	}
 	return
 }
 
-func (s *Store) GetPlugin(ctx context.Context, name string) (plugin *olaf.TenantCanaryPlugin, err error) {
+func (s *Store) GetPlugin(ctx context.Context, name string) (plugin *olaf.Plugin, err error) {
 	plugin, ok := s.data.Plugins[name]
 	if !ok {
 		return nil, olaf.ErrPluginNotFound
@@ -163,7 +163,7 @@ func Parse(in []byte) (*olaf.Data, error) {
 		Server:   c.Server,
 		Services: make(map[string]*olaf.Service),
 		Routes:   make(map[string]*olaf.Route),
-		Plugins:  make(map[string]*olaf.TenantCanaryPlugin),
+		Plugins:  make(map[string]*olaf.Plugin),
 	}
 
 	for i, s := range c.Services { // global services
@@ -212,19 +212,19 @@ type (
 	service struct {
 		*olaf.Service `yaml:",inline"`
 
-		Routes  []*route                   `yaml:"routes"`
-		Plugins []*olaf.TenantCanaryPlugin `yaml:"plugins"`
+		Routes  []*route       `yaml:"routes"`
+		Plugins []*olaf.Plugin `yaml:"plugins"`
 	}
 
 	route struct {
 		*olaf.Route `yaml:",inline"`
 
-		Plugins []*olaf.TenantCanaryPlugin `yaml:"plugins"`
+		Plugins []*olaf.Plugin `yaml:"plugins"`
 	}
 
 	content struct {
-		Server   *olaf.Server               `yaml:"server"`
-		Services []*service                 `yaml:"services"`
-		Plugins  []*olaf.TenantCanaryPlugin `yaml:"plugins"`
+		Server   *olaf.Server   `yaml:"server"`
+		Services []*service     `yaml:"services"`
+		Plugins  []*olaf.Plugin `yaml:"plugins"`
 	}
 )

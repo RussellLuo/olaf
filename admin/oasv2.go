@@ -29,6 +29,20 @@ produces:
 
 	paths = `
 paths:
+  /plugins:
+    post:
+      description: ""
+      operationId: "CreatePlugin"
+      parameters: 
+        - name: body
+          in: body
+          schema:
+            $ref: "#/definitions/CreatePluginRequestBody" 
+      %s
+    get:
+      description: ""
+      operationId: "ListPlugins" 
+      %s 
   /routes:
     post:
       description: ""
@@ -56,20 +70,6 @@ paths:
     get:
       description: ""
       operationId: "ListServices" 
-      %s 
-  /plugins:
-    post:
-      description: ""
-      operationId: "CreateTenantCanaryPlugin"
-      parameters: 
-        - name: body
-          in: body
-          schema:
-            $ref: "#/definitions/CreateTenantCanaryPluginRequestBody" 
-      %s
-    get:
-      description: ""
-      operationId: "ListPlugins" 
       %s 
   /plugins/{name}:
     delete:
@@ -181,12 +181,12 @@ paths:
 
 func getResponses(schema oasv2.Schema) []oasv2.OASResponses {
 	return []oasv2.OASResponses{
+		oasv2.GetOASResponses(schema, "CreatePlugin", 200, &CreatePluginResponse{}),
+		oasv2.GetOASResponses(schema, "ListPlugins", 200, &ListPluginsResponse{}),
 		oasv2.GetOASResponses(schema, "CreateRoute", 200, &CreateRouteResponse{}),
 		oasv2.GetOASResponses(schema, "ListRoutes", 200, &ListRoutesResponse{}),
 		oasv2.GetOASResponses(schema, "CreateService", 200, &CreateServiceResponse{}),
 		oasv2.GetOASResponses(schema, "ListServices", 200, &ListServicesResponse{}),
-		oasv2.GetOASResponses(schema, "CreateTenantCanaryPlugin", 200, &CreateTenantCanaryPluginResponse{}),
-		oasv2.GetOASResponses(schema, "ListPlugins", 200, &ListPluginsResponse{}),
 		oasv2.GetOASResponses(schema, "DeletePlugin", 204, &DeletePluginResponse{}),
 		oasv2.GetOASResponses(schema, "GetPlugin", 200, &GetPluginResponse{}),
 		oasv2.GetOASResponses(schema, "DeleteRoute", 204, &DeleteRouteResponse{}),
@@ -203,14 +203,14 @@ func getResponses(schema oasv2.Schema) []oasv2.OASResponses {
 func getDefinitions(schema oasv2.Schema) map[string]oasv2.Definition {
 	defs := make(map[string]oasv2.Definition)
 
+	oasv2.AddDefinition(defs, "CreatePluginRequestBody", reflect.ValueOf((&CreatePluginRequest{}).P))
+	oasv2.AddResponseDefinitions(defs, schema, "CreatePlugin", 200, (&CreatePluginResponse{}).Body())
+
 	oasv2.AddDefinition(defs, "CreateRouteRequestBody", reflect.ValueOf((&CreateRouteRequest{}).Route))
 	oasv2.AddResponseDefinitions(defs, schema, "CreateRoute", 200, (&CreateRouteResponse{}).Body())
 
 	oasv2.AddDefinition(defs, "CreateServiceRequestBody", reflect.ValueOf((&CreateServiceRequest{}).Svc))
 	oasv2.AddResponseDefinitions(defs, schema, "CreateService", 200, (&CreateServiceResponse{}).Body())
-
-	oasv2.AddDefinition(defs, "CreateTenantCanaryPluginRequestBody", reflect.ValueOf((&CreateTenantCanaryPluginRequest{}).P))
-	oasv2.AddResponseDefinitions(defs, schema, "CreateTenantCanaryPlugin", 200, (&CreateTenantCanaryPluginResponse{}).Body())
 
 	oasv2.AddResponseDefinitions(defs, schema, "DeletePlugin", 204, (&DeletePluginResponse{}).Body())
 

@@ -8,12 +8,15 @@ import (
 	"time"
 
 	"github.com/RussellLuo/olaf"
+	"github.com/mitchellh/mapstructure"
 )
 
 var (
 	reRegexpPath = regexp.MustCompile(`~(\w+)?:\s*(.+)`)
 
 	reTCPAddressFormat = regexp.MustCompile(`^([^:]+)?(:\d+(-\d+)?)?$`)
+
+	reCanaryKeyVar = regexp.MustCompile(`^(\w+)\.(.+)$`)
 )
 
 const (
@@ -181,7 +184,7 @@ func buildRouteMatches(methods, hosts, paths []string) (matches []map[string]int
 	return
 }
 
-func buildSubRoutes(r *olaf.Route, services map[string]*olaf.Service, p map[string]*olaf.TenantCanaryPlugin) (routes []map[string]interface{}) {
+func buildSubRoutes(r *olaf.Route, services map[string]*olaf.Service, p map[string]*olaf.Plugin) (routes []map[string]interface{}) {
 	if r.StripPrefix != "" || r.StripSuffix != "" {
 		stripHandler := map[string]string{
 			"handler": "rewrite",
@@ -219,7 +222,7 @@ func buildSubRoutes(r *olaf.Route, services map[string]*olaf.Service, p map[stri
 
 	service := services[r.ServiceName]
 
-	var plugin *olaf.TenantCanaryPlugin
+	var plugin *olaf.Plugin
 	plugins := findAppliedPlugins(p, r)
 	if len(plugins) > 0 {
 		// For simplicity, only use the first plugin now.
@@ -245,14 +248,14 @@ func buildSubRoutes(r *olaf.Route, services map[string]*olaf.Service, p map[stri
 }
 
 // findAppliedPlugins finds the plugins that have been applied to the given route.
-func findAppliedPlugins(ps map[string]*olaf.TenantCanaryPlugin, r *olaf.Route) []*olaf.TenantCanaryPlugin {
-	routeServicePlugins := make(map[string][]*olaf.TenantCanaryPlugin)
-	routePlugins := make(map[string][]*olaf.TenantCanaryPlugin)
-	servicePlugins := make(map[string][]*olaf.TenantCanaryPlugin)
-	var globalPlugins []*olaf.TenantCanaryPlugin
+func findAppliedPlugins(ps map[string]*olaf.Plugin, r *olaf.Route) []*olaf.Plugin {
+	routeServicePlugins := make(map[string][]*olaf.Plugin)
+	routePlugins := make(map[string][]*olaf.Plugin)
+	servicePlugins := make(map[string][]*olaf.Plugin)
+	var globalPlugins []*olaf.Plugin
 
 	for _, p := range ps {
-		if !p.Enabled {
+		if p.Disabled {
 			continue
 		}
 
@@ -283,48 +286,73 @@ func findAppliedPlugins(ps map[string]*olaf.TenantCanaryPlugin, r *olaf.Route) [
 	return plugins
 }
 
-func canaryReverseProxy(p *olaf.TenantCanaryPlugin, services map[string]*olaf.Service) (routes []map[string]interface{}, canaryFieldInBody bool) {
-	if p == nil {
+func canaryReverseProxy(p *olaf.Plugin, services map[string]*olaf.Service) (routes []map[string]interface{}, canaryFieldInBody bool) {
+	if p == nil || p.Type != olaf.PluginTypeCanary {
 		return
 	}
 
-	s := services[p.Config.UpstreamServiceName]
+	config := new(olaf.PluginCanaryConfig)
+	if err := mapstructure.Decode(p.Config, config); err != nil {
+		panic(fmt.Errorf("config of plugin %q cannot be decoded into olaf.PluginCanaryConfig", p.Name))
+	}
+
+	s := services[config.UpstreamServiceName]
 	if s == nil {
-		panic(fmt.Errorf("upstream service %q of plugin %q not found", p.Config.UpstreamServiceName, p.Name))
+		panic(fmt.Errorf("upstream service %q of plugin %q not found", config.UpstreamServiceName, p.Name))
 	}
 
-	name := p.Config.TenantIDName
-	if name == "" {
-		panic(fmt.Errorf("tenant-id name of plugin %q is empty", p.Name))
+	keyVar, inBody, err := parseVar(config.KeyName, p)
+	if err != nil {
+		panic(err)
 	}
-
-	var idVar string
-	switch p.Config.TenantIDLocation {
-	case "path":
-		idVar = fmt.Sprintf("{http.request.uri.path.%s}", name)
-	case "query":
-		idVar = fmt.Sprintf("{http.request.uri.query.%s}", name)
-	case "header":
-		idVar = fmt.Sprintf("{http.request.header.%s}", name)
-	case "cookie":
-		idVar = fmt.Sprintf("{http.request.cookie.%s}", name)
-	case "body":
-		idVar = fmt.Sprintf("{http.request.body.%s}", name)
-		canaryFieldInBody = true
-	default:
-		panic(fmt.Errorf("tenant-id location %q of plugin %q is invalid", p.Config.TenantIDLocation, p.Name))
-	}
+	canaryFieldInBody = inBody
 
 	// Do the type conversion if specified.
-	if p.Config.TenantIDType != "" {
-		idVar = fmt.Sprintf("%s(%s)", p.Config.TenantIDType, idVar)
+	if config.KeyType != "" {
+		keyVar = fmt.Sprintf("%s(%s)", config.KeyType, keyVar)
 	}
 
-	if p.Config.TenantIDWhitelist == "" {
-		panic(fmt.Errorf("tenant-id whitelist of plugin %q is empty", p.Name))
+	if config.Whitelist == "" {
+		panic(fmt.Errorf("whitelist of canary plugin %q is empty", p.Name))
 	}
-	expr := strings.ReplaceAll(p.Config.TenantIDWhitelist, "$", idVar)
+	expr := strings.ReplaceAll(config.Whitelist, "$", keyVar)
 	routes = append(routes, reverseProxy(s, expr))
+
+	return
+}
+
+// parseVar transforms shorthand variables into Caddy-style placeholders.
+//
+// Examples for shorthand variables:
+//
+//     {path.<var>}
+//     {query.<var>}
+//     {header.<VAR>}
+//     {cookie.<var>}
+//     {body.<var>}
+//
+func parseVar(s string, p *olaf.Plugin) (v string, inBody bool, err error) {
+	result := reCanaryKeyVar.FindStringSubmatch(s)
+	if len(result) != 3 {
+		return "", false, fmt.Errorf("invalid key %q for canary plugin %q", s, p.Name)
+	}
+	location, name := result[1], result[2]
+
+	switch location {
+	case "path":
+		v = fmt.Sprintf("{http.request.uri.path.%s}", name)
+	case "query":
+		v = fmt.Sprintf("{http.request.uri.query.%s}", name)
+	case "header":
+		v = fmt.Sprintf("{http.request.header.%s}", name)
+	case "cookie":
+		v = fmt.Sprintf("{http.request.cookie.%s}", name)
+	case "body":
+		v = fmt.Sprintf("{http.request.body.%s}", name)
+		inBody = true
+	default:
+		err = fmt.Errorf("unrecognized key %q for canary plugin %q", s, p.Name)
+	}
 
 	return
 }

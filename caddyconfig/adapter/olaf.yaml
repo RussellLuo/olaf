@@ -28,14 +28,13 @@ services:
     # `~:` represents a regex path
     - ~:^/bar/\w+ # samples: /bar/1 or /bar/word
     plugins:
-    - enabled: true
+    - type: canary
       config:
         # path "/bar/1?tid=5" will be routed to service `staging`
-        tenant_id_location: query
-        tenant_id_name: tid
-        tenant_id_type: int
-        tenant_id_whitelist: $ > 0 && $ <= 10 # `$` represents the value of tid
-        upstream_service_name: staging
+        key: query.tid
+        type: int
+        whitelist: $ > 0 && $ <= 10 # `$` represents the value of tid
+        upstream: staging
 
 - name: staging
   url: localhost:3333

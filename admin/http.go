@@ -27,6 +27,19 @@ func NewHTTPRouterWithOAS(svc Admin, codecs httpcodec.Codecs, schema oasv2.Schem
 	var codec httpcodec.Codec
 	var options []kithttp.ServerOption
 
+	codec = codecs.EncodeDecoder("CreatePlugin")
+	r.Method(
+		"POST", "/plugins",
+		kithttp.NewServer(
+			MakeEndpointOfCreatePlugin(svc),
+			decodeCreatePluginRequest(codec),
+			httpcodec.MakeResponseEncoder(codec, 200),
+			append(options,
+				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
+			)...,
+		),
+	)
+
 	codec = codecs.EncodeDecoder("CreateRoute")
 	r.Method(
 		"POST", "/routes",
@@ -46,19 +59,6 @@ func NewHTTPRouterWithOAS(svc Admin, codecs httpcodec.Codecs, schema oasv2.Schem
 		kithttp.NewServer(
 			MakeEndpointOfCreateService(svc),
 			decodeCreateServiceRequest(codec),
-			httpcodec.MakeResponseEncoder(codec, 200),
-			append(options,
-				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
-			)...,
-		),
-	)
-
-	codec = codecs.EncodeDecoder("CreateTenantCanaryPlugin")
-	r.Method(
-		"POST", "/plugins",
-		kithttp.NewServer(
-			MakeEndpointOfCreateTenantCanaryPlugin(svc),
-			decodeCreateTenantCanaryPluginRequest(codec),
 			httpcodec.MakeResponseEncoder(codec, 200),
 			append(options,
 				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
@@ -238,6 +238,18 @@ func NewHTTPRouterWithOAS(svc Admin, codecs httpcodec.Codecs, schema oasv2.Schem
 	return r
 }
 
+func decodeCreatePluginRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
+	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		var _req CreatePluginRequest
+
+		if err := codec.DecodeRequestBody(r.Body, &_req.P); err != nil {
+			return nil, err
+		}
+
+		return &_req, nil
+	}
+}
+
 func decodeCreateRouteRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req CreateRouteRequest
@@ -255,18 +267,6 @@ func decodeCreateServiceRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc
 		var _req CreateServiceRequest
 
 		if err := codec.DecodeRequestBody(r.Body, &_req.Svc); err != nil {
-			return nil, err
-		}
-
-		return &_req, nil
-	}
-}
-
-func decodeCreateTenantCanaryPluginRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
-	return func(_ context.Context, r *http.Request) (interface{}, error) {
-		var _req CreateTenantCanaryPluginRequest
-
-		if err := codec.DecodeRequestBody(r.Body, &_req.P); err != nil {
 			return nil, err
 		}
 
