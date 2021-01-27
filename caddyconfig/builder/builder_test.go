@@ -293,7 +293,7 @@ func TestPluginCanaryExpression(t *testing.T) {
 				Type: olaf.PluginTypeCanary,
 				Config: map[string]interface{}{
 					"upstream":  "staging",
-					"key":       "path.0",
+					"key":       "{path.0}",
 					"whitelist": `$.startsWith("tid")`,
 				},
 			},
@@ -310,7 +310,7 @@ func TestPluginCanaryExpression(t *testing.T) {
 				Type: olaf.PluginTypeCanary,
 				Config: map[string]interface{}{
 					"upstream":  "staging",
-					"key":       "query.tid",
+					"key":       "{query.tid}",
 					"type":      "int",
 					"whitelist": "$ > 0 && $ <= 10",
 				},
@@ -328,7 +328,7 @@ func TestPluginCanaryExpression(t *testing.T) {
 				Type: olaf.PluginTypeCanary,
 				Config: map[string]interface{}{
 					"upstream":  "staging",
-					"key":       "body.tid",
+					"key":       "{body.tid}",
 					"type":      "int",
 					"whitelist": "$ > 0 && $ <= 10",
 				},
