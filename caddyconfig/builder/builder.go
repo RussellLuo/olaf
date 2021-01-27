@@ -16,7 +16,7 @@ var (
 
 	reTCPAddressFormat = regexp.MustCompile(`^([^:]+)?(:\d+(-\d+)?)?$`)
 
-	reCanaryKeyVar = regexp.MustCompile(`^(\w+)\.(.+)$`)
+	reCanaryKeyVar = regexp.MustCompile(`^\{(\w+)\.(.+)\}$`)
 )
 
 const (
@@ -184,7 +184,7 @@ func buildRouteMatches(methods, hosts, paths []string) (matches []map[string]int
 	return
 }
 
-func buildSubRoutes(r *olaf.Route, services map[string]*olaf.Service, p map[string]*olaf.Plugin) (routes []map[string]interface{}) {
+func buildSubRoutes(r *olaf.Route, services map[string]*olaf.Service, plugins map[string]*olaf.Plugin) (routes []map[string]interface{}) {
 	if r.StripPrefix != "" || r.StripSuffix != "" {
 		stripHandler := map[string]string{
 			"handler": "rewrite",
@@ -222,39 +222,35 @@ func buildSubRoutes(r *olaf.Route, services map[string]*olaf.Service, p map[stri
 
 	service := services[r.ServiceName]
 
-	var plugin *olaf.Plugin
-	plugins := findAppliedPlugins(p, r)
-	if len(plugins) > 0 {
-		// For simplicity, only use the first plugin now.
-		plugin = plugins[0]
+	appliedPlugins, err := findAppliedPlugins(plugins, r)
+	if err != nil {
+		panic(err)
 	}
 
-	canaryRoutes, canaryFieldInBody := canaryReverseProxy(plugin, services)
-	if canaryFieldInBody {
-		routes = append(routes, map[string]interface{}{
-			"handle": []map[string]string{
-				{
-					"handler": "request_body_var",
-				},
-			},
-		})
+	// Build routes from plugins.
+	for _, p := range appliedPlugins {
+		switch p.Type {
+		case olaf.PluginTypeCanary: // For the built-in canary plugin.
+			canaryRoutes := canaryReverseProxy(p, services)
+			routes = append(routes, canaryRoutes...)
+		default: // For other plugins (usually third-party Caddy extensions).
+			routes = append(routes, buildPluginRoute(p))
+		}
 	}
 
-	// Canary reverse-proxy routes must come before normal reverse-proxy routes.
-	routes = append(routes, canaryRoutes...)
-
+	// Normal reverse-proxy routes must come after canary reverse-proxy routes.
 	routes = append(routes, reverseProxy(service, ""))
 	return
 }
 
 // findAppliedPlugins finds the plugins that have been applied to the given route.
-func findAppliedPlugins(ps map[string]*olaf.Plugin, r *olaf.Route) []*olaf.Plugin {
+func findAppliedPlugins(plugins map[string]*olaf.Plugin, r *olaf.Route) ([]*olaf.Plugin, error) {
 	routeServicePlugins := make(map[string][]*olaf.Plugin)
 	routePlugins := make(map[string][]*olaf.Plugin)
 	servicePlugins := make(map[string][]*olaf.Plugin)
 	var globalPlugins []*olaf.Plugin
 
-	for _, p := range ps {
+	for _, p := range plugins {
 		if p.Disabled {
 			continue
 		}
@@ -271,22 +267,105 @@ func findAppliedPlugins(ps map[string]*olaf.Plugin, r *olaf.Route) []*olaf.Plugi
 		}
 	}
 
+	// A plugin (of the same type) will always be run once and only once per request.
 	// The plugin precedence follows https://docs.konghq.com/2.0.x/admin-api/#precedence
-	plugins, ok := routeServicePlugins[r.Name]
-	if !ok {
-		plugins, ok = routePlugins[r.Name]
-		if !ok {
-			plugins, ok = servicePlugins[r.ServiceName]
-			if !ok && len(globalPlugins) > 0 {
-				plugins = globalPlugins
+	typedPlugins := make(map[string]*olaf.Plugin)
+	addPlugin := func(p *olaf.Plugin) {
+		if _, ok := typedPlugins[p.Type]; !ok {
+			typedPlugins[p.Type] = p
+		}
+	}
+	for _, p := range routeServicePlugins[r.Name] {
+		addPlugin(p)
+	}
+	for _, p := range routePlugins[r.Name] {
+		addPlugin(p)
+	}
+	for _, p := range servicePlugins[r.ServiceName] {
+		addPlugin(p)
+	}
+	for _, p := range globalPlugins {
+		addPlugin(p)
+	}
+
+	return sortPluginsByOrderAfter(typedPlugins)
+}
+
+// sortPluginsByOrderAfter sorts the plugins according to the `OrderAfter` field.
+func sortPluginsByOrderAfter(typedPlugins map[string]*olaf.Plugin) (plugins []*olaf.Plugin, err error) {
+	// If there is only one plugin, return it immediately.
+	if len(typedPlugins) == 1 {
+		for _, p := range typedPlugins {
+			plugins = append(plugins, p)
+		}
+		return
+	}
+
+	processed := make(map[string]bool)
+	emptyOrderAfterPlugins := make(map[string]*olaf.Plugin)
+
+	for _, p := range typedPlugins {
+		if p.OrderAfter == "" {
+			emptyOrderAfterPlugins[p.Type] = p
+			continue
+		}
+
+		// Build the stack per the order dependency.
+		pendingTypes := make(map[string]bool)
+		var stack []*olaf.Plugin
+
+		for {
+			if _, ok := processed[p.Type]; ok {
+				if _, ok := pendingTypes[p.Type]; ok {
+					return nil, fmt.Errorf("circular order dependency is detected for plugin %q (of type %q)", p.Name, p.Type)
+				}
+				break
 			}
+			processed[p.Type] = true
+			pendingTypes[p.Type] = true
+
+			stack = append(stack, p)
+
+			if p.OrderAfter == "" {
+				break
+			}
+
+			afterP, ok := typedPlugins[p.OrderAfter]
+			if !ok || afterP == nil {
+				return nil, fmt.Errorf("plugin type %q (depended by plugin %q) not found", p.OrderAfter, p.Name)
+			}
+			p = afterP
+		}
+
+		// Append the plugins in the reverse order.
+		for i := len(stack); i > 0; i-- {
+			p := stack[i-1]
+			plugins = append(plugins, p)
 		}
 	}
 
-	return plugins
+	for t, p := range emptyOrderAfterPlugins {
+		if _, ok := processed[t]; !ok {
+			return nil, fmt.Errorf("plugin %q (of type %q) is unordered", p.Name, p.Type)
+		}
+	}
+
+	return
 }
 
-func canaryReverseProxy(p *olaf.Plugin, services map[string]*olaf.Service) (routes []map[string]interface{}, canaryFieldInBody bool) {
+func buildPluginRoute(p *olaf.Plugin) map[string]interface{} {
+	handle := map[string]interface{}{
+		"handler": p.Type,
+	}
+	for k, v := range p.Config {
+		handle[k] = v
+	}
+	return map[string]interface{}{
+		"handle": []map[string]interface{}{handle},
+	}
+}
+
+func canaryReverseProxy(p *olaf.Plugin, services map[string]*olaf.Service) (routes []map[string]interface{}) {
 	if p == nil || p.Type != olaf.PluginTypeCanary {
 		return
 	}
@@ -301,11 +380,10 @@ func canaryReverseProxy(p *olaf.Plugin, services map[string]*olaf.Service) (rout
 		panic(fmt.Errorf("upstream service %q of plugin %q not found", config.UpstreamServiceName, p.Name))
 	}
 
-	keyVar, inBody, err := parseVar(config.KeyName, p)
+	keyVar, err := parseVar(config.KeyName, p)
 	if err != nil {
 		panic(err)
 	}
-	canaryFieldInBody = inBody
 
 	// Do the type conversion if specified.
 	if config.KeyType != "" {
@@ -331,10 +409,10 @@ func canaryReverseProxy(p *olaf.Plugin, services map[string]*olaf.Service) (rout
 //     {cookie.<var>}
 //     {body.<var>}
 //
-func parseVar(s string, p *olaf.Plugin) (v string, inBody bool, err error) {
+func parseVar(s string, p *olaf.Plugin) (v string, err error) {
 	result := reCanaryKeyVar.FindStringSubmatch(s)
 	if len(result) != 3 {
-		return "", false, fmt.Errorf("invalid key %q for canary plugin %q", s, p.Name)
+		return "", fmt.Errorf("invalid key %q for canary plugin %q", s, p.Name)
 	}
 	location, name := result[1], result[2]
 
@@ -349,7 +427,6 @@ func parseVar(s string, p *olaf.Plugin) (v string, inBody bool, err error) {
 		v = fmt.Sprintf("{http.request.cookie.%s}", name)
 	case "body":
 		v = fmt.Sprintf("{http.request.body.%s}", name)
-		inBody = true
 	default:
 		err = fmt.Errorf("unrecognized key %q for canary plugin %q", s, p.Name)
 	}

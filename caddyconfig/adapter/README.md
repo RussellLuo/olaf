@@ -115,7 +115,8 @@ The Plugin entity:
 | --- | --- | --- |
 | `disabled` | | Whether this Plugin is disabled. Default: `false`. |
 | `name` | | The name of this Plugin. Default: `"plugin_<i>"` for global plugins, `"<service_name>_plugin_<i>"` for service plugins, or `"<route_name>_plugin_<i>"` for route plugins (`<i>` is the index of this plugin in the array). |
-| `type` | √ | The type of this Plugin. Built-in plugin types: `"canary"` for Canary Plugin. |
+| `type` | √ | The type of this Plugin. Available plugin types: `"canary"` (built-in), or `"request_body_var"` (requires the [caddy-ext/requestbodyvar](https://github.com/RussellLuo/caddy-ext/tree/master/requestbodyvar) extension), or `"rate_limit"` (requires the [caddy-ext/ratelimit](https://github.com/RussellLuo/caddy-ext/tree/master/ratelimit) extension). |
+| `order_after` | | The order of this Plugin. Default: `""` (the `type` of the previous Plugin, if any, in the Plugin array). |
 | `config` | | The configuration of this Plugin. |
 
 The Config of the Canary Plugin:
@@ -123,7 +124,7 @@ The Config of the Canary Plugin:
 | Attribute | Required | Description |
 | --- | --- | --- |
 | `upstream` | √ | The name of the upstream service for this Plugin. |
-| `key` | √ | The variable used to differentiate one client from another. Currently supported variables: `"path.*"`, `"query.*"`, `"header.*"`, `"cookie.*"` or `"body.*"` (requires the [caddy-ext/requestbodyvar](https://github.com/RussellLuo/caddy-ext/tree/master/requestbodyvar) extension). |
+| `key` | √ | The variable used to differentiate one client from another. Currently supported variables: `"{path.*}"`, `"{query.*}"`, `"{header.*}"`, `"{cookie.*}"` or `"{body.*}"` (requires the [caddy-ext/requestbodyvar](https://github.com/RussellLuo/caddy-ext/tree/master/requestbodyvar) extension). |
 | `type` | | The type of key. Default: `""` (string). |
 | `whitelist` | √ | The whitelist defined in a [CEL expression](https://caddyserver.com/docs/caddyfile/matchers#expression) (using `$` as a placeholder for the value of key). If the key value is in the whitelist, the corresponding request will be routed to the service specified by `upstream`. |
 
@@ -147,7 +148,8 @@ Build Caddy:
 ```bash
 $ xcaddy build \
     --with github.com/RussellLuo/olaf/caddyconfig/adapter \
-    --with github.com/RussellLuo/caddy-ext/requestbodyvar
+    --with github.com/RussellLuo/caddy-ext/requestbodyvar \
+    --with github.com/RussellLuo/caddy-ext/ratelimit
 ```
 
 ### Run Caddy

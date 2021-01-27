@@ -177,9 +177,10 @@ type Route struct {
 type Plugin struct {
 	Disabled bool `json:"disabled" yaml:"disabled"`
 
-	Name   string                 `json:"name" yaml:"name"`
-	Type   string                 `json:"type" yaml:"type"`
-	Config map[string]interface{} `json:"config" yaml:"config"`
+	Name       string                 `json:"name" yaml:"name"`
+	Type       string                 `json:"type" yaml:"type"`
+	OrderAfter string                 `json:"order_after" yaml:"order_after"`
+	Config     map[string]interface{} `json:"config" yaml:"config"`
 
 	RouteName   string `json:"route_name" yaml:"route_name"`
 	ServiceName string `json:"service_name" yaml:"service_name"`

@@ -28,10 +28,14 @@ services:
     # `~:` represents a regex path
     - ~:^/bar/\w+ # samples: /bar/1 or /bar/word
     plugins:
+    - type: rate_limit
+      config:
+        key: '{query.tid}'
+        rate: 10r/s
     - type: canary
       config:
         # path "/bar/1?tid=5" will be routed to service `staging`
-        key: query.tid
+        key: '{query.tid}'
         type: int
         whitelist: $ > 0 && $ <= 10 # `$` represents the value of tid
         upstream: staging

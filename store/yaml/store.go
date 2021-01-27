@@ -183,6 +183,9 @@ func Parse(in []byte) (*olaf.Data, error) {
 				if p.Name == "" {
 					p.Name = fmt.Sprintf("%s_plugin_%d", r.Route.Name, k)
 				}
+				if p.OrderAfter == "" && k > 0 {
+					p.OrderAfter = r.Plugins[k-1].Type
+				}
 				p.ServiceName = s.Service.Name
 				p.RouteName = r.Route.Name
 				data.Plugins[p.Name] = p
@@ -193,6 +196,9 @@ func Parse(in []byte) (*olaf.Data, error) {
 			if p.Name == "" {
 				p.Name = fmt.Sprintf("%s_plugin_%d", s.Service.Name, j)
 			}
+			if p.OrderAfter == "" && j > 0 {
+				p.OrderAfter = s.Plugins[j-1].Type
+			}
 			p.ServiceName = s.Service.Name
 			data.Plugins[p.Name] = p
 		}
@@ -201,6 +207,9 @@ func Parse(in []byte) (*olaf.Data, error) {
 	for i, p := range c.Plugins { // global plugins
 		if p.Name == "" {
 			p.Name = fmt.Sprintf("plugin_%d", i)
+		}
+		if p.OrderAfter == "" && i > 0 {
+			p.OrderAfter = c.Plugins[i-1].Type
 		}
 		data.Plugins[p.Name] = p
 	}
