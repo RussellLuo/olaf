@@ -239,7 +239,7 @@ func buildSubRoutes(r *olaf.Route, services map[string]*olaf.Service, plugins ma
 	}
 
 	// Normal reverse-proxy routes must come after canary reverse-proxy routes.
-	routes = append(routes, reverseProxy(service, ""))
+	routes = append(routes, reverseProxy(service, nil))
 	return
 }
 
@@ -380,6 +380,18 @@ func canaryReverseProxy(p *olaf.Plugin, services map[string]*olaf.Service) (rout
 		panic(fmt.Errorf("upstream service %q of plugin %q not found", config.UpstreamServiceName, p.Name))
 	}
 
+	// If the advanced matcher is provided, use it instead.
+	if len(config.Matcher) > 0 {
+		if config.KeyName != "" || config.KeyType != "" || config.Whitelist != "" {
+			panic(fmt.Errorf("invalid config of plugin %q: `matcher` and (`key`, `type`, `whitelist`) are mutually exclusive", p.Name))
+		}
+
+		routes = append(routes, reverseProxy(s, config.Matcher))
+		return
+	}
+
+	// Use the simple matcher `expression`.
+
 	keyVar, err := parseVar(config.KeyName, p)
 	if err != nil {
 		panic(err)
@@ -394,7 +406,11 @@ func canaryReverseProxy(p *olaf.Plugin, services map[string]*olaf.Service) (rout
 		panic(fmt.Errorf("whitelist of canary plugin %q is empty", p.Name))
 	}
 	expr := strings.ReplaceAll(config.Whitelist, "$", keyVar)
-	routes = append(routes, reverseProxy(s, expr))
+
+	matcher := map[string]interface{}{
+		"expression": expr,
+	}
+	routes = append(routes, reverseProxy(s, matcher))
 
 	return
 }
@@ -434,7 +450,7 @@ func parseVar(s string, p *olaf.Plugin) (v string, err error) {
 	return
 }
 
-func reverseProxy(s *olaf.Service, expr string) map[string]interface{} {
+func reverseProxy(s *olaf.Service, matcher map[string]interface{}) map[string]interface{} {
 	var timeout time.Duration
 	if s.DialTimeout != "" {
 		var err error
@@ -459,12 +475,8 @@ func reverseProxy(s *olaf.Service, expr string) map[string]interface{} {
 		},
 	}
 
-	if expr != "" {
-		route["match"] = []map[string]string{
-			{
-				"expression": expr,
-			},
-		}
+	if len(matcher) > 0 {
+		route["match"] = []map[string]interface{}{matcher}
 	}
 
 	return route

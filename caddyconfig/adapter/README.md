@@ -127,6 +127,7 @@ The Config of the Canary Plugin:
 | `key` | √ | The variable used to differentiate one client from another. Currently supported variables: `"{path.*}"`, `"{query.*}"`, `"{header.*}"`, `"{cookie.*}"` or `"{body.*}"` (requires the [caddy-ext/requestbodyvar](https://github.com/RussellLuo/caddy-ext/tree/master/requestbodyvar) extension). |
 | `type` | | The type of key. Default: `""` (string). |
 | `whitelist` | √ | The whitelist defined in a [CEL expression](https://caddyserver.com/docs/caddyfile/matchers#expression) (using `$` as a placeholder for the value of key). If the key value is in the whitelist, the corresponding request will be routed to the service specified by `upstream`. |
+| `matcher` | | The advanced matcher, which can consist of various [Caddy matchers](https://caddyserver.com/docs/json/apps/http/servers/routes/match/) or your own ones. **NOTE**: `matcher` and (`key`, `type`, `whitelist`) are mutually exclusive. |
 
 ### Example
 

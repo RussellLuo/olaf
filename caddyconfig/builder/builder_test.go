@@ -284,11 +284,13 @@ func TestSortPluginsByOrderAfter(t *testing.T) {
 
 func TestPluginCanaryExpression(t *testing.T) {
 	cases := []struct {
-		inPlugin            *olaf.Plugin
-		inServices          map[string]*olaf.Service
-		wantMatchExpression string
+		name       string
+		inPlugin   *olaf.Plugin
+		inServices map[string]*olaf.Service
+		wantMatch  map[string]interface{}
 	}{
 		{
+			name: "canary per path",
 			inPlugin: &olaf.Plugin{
 				Type: olaf.PluginTypeCanary,
 				Config: map[string]interface{}{
@@ -303,9 +305,12 @@ func TestPluginCanaryExpression(t *testing.T) {
 					URL:  "localhost:8080",
 				},
 			},
-			wantMatchExpression: `{http.request.uri.path.0}.startsWith("tid")`,
+			wantMatch: map[string]interface{}{
+				"expression": `{http.request.uri.path.0}.startsWith("tid")`,
+			},
 		},
 		{
+			name: "canary per query",
 			inPlugin: &olaf.Plugin{
 				Type: olaf.PluginTypeCanary,
 				Config: map[string]interface{}{
@@ -321,9 +326,12 @@ func TestPluginCanaryExpression(t *testing.T) {
 					URL:  "localhost:8080",
 				},
 			},
-			wantMatchExpression: "int({http.request.uri.query.tid}) > 0 && int({http.request.uri.query.tid}) <= 10",
+			wantMatch: map[string]interface{}{
+				"expression": "int({http.request.uri.query.tid}) > 0 && int({http.request.uri.query.tid}) <= 10",
+			},
 		},
 		{
+			name: "canary per body",
 			inPlugin: &olaf.Plugin{
 				Type: olaf.PluginTypeCanary,
 				Config: map[string]interface{}{
@@ -339,18 +347,41 @@ func TestPluginCanaryExpression(t *testing.T) {
 					URL:  "localhost:8080",
 				},
 			},
-			wantMatchExpression: "int({http.request.body.tid}) > 0 && int({http.request.body.tid}) <= 10",
+			wantMatch: map[string]interface{}{
+				"expression": "int({http.request.body.tid}) > 0 && int({http.request.body.tid}) <= 10",
+			},
+		},
+		{
+			name: "advanced matcher",
+			inPlugin: &olaf.Plugin{
+				Type: olaf.PluginTypeCanary,
+				Config: map[string]interface{}{
+					"upstream": "staging",
+					"matcher": map[string]interface{}{
+						"expression": `{http.request.uri.path.0}.startsWith("tid")`,
+					},
+				},
+			},
+			inServices: map[string]*olaf.Service{
+				"staging": {
+					Name: "staging",
+					URL:  "localhost:8080",
+				},
+			},
+			wantMatch: map[string]interface{}{
+				"expression": `{http.request.uri.path.0}.startsWith("tid")`,
+			},
 		},
 	}
 
 	for _, c := range cases {
-		t.Run("", func(t *testing.T) {
+		t.Run(c.name, func(t *testing.T) {
 			routes := canaryReverseProxy(c.inPlugin, c.inServices)
-			matchList := routes[0]["match"].([]map[string]string)
-			gotMatchExpression := matchList[0]["expression"]
+			matchList := routes[0]["match"].([]map[string]interface{})
+			gotMatch := matchList[0] // Get the first match.
 
-			if gotMatchExpression != c.wantMatchExpression {
-				t.Fatalf("Routes: got (%#v), want (%#v)", gotMatchExpression, c.wantMatchExpression)
+			if !reflect.DeepEqual(gotMatch, c.wantMatch) {
+				t.Fatalf("Match: got (%#v), want (%#v)", gotMatch, c.wantMatch)
 			}
 		})
 	}

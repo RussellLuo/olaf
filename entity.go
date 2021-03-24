@@ -192,6 +192,10 @@ type PluginCanaryConfig struct {
 	KeyName   string `json:"key" yaml:"key" mapstructure:"key"`
 	KeyType   string `json:"type" yaml:"type" mapstructure:"type"`
 	Whitelist string `json:"whitelist" yaml:"whitelist" mapstructure:"whitelist"`
+
+	// The advanced matcher.
+	// See https://caddyserver.com/docs/json/apps/http/servers/routes/match/
+	Matcher map[string]interface{} `json:"matcher" yaml:"matcher" mapstructure:"matcher"`
 }
 
 type Data struct {
