@@ -185,42 +185,7 @@ func buildRouteMatches(methods, hosts, paths []string) (matches []map[string]int
 }
 
 func buildSubRoutes(r *olaf.Route, services map[string]*olaf.Service, plugins map[string]*olaf.Plugin) (routes []map[string]interface{}) {
-	if r.StripPrefix != "" || r.StripSuffix != "" {
-		stripHandler := map[string]string{
-			"handler": "rewrite",
-		}
-		if r.StripPrefix != "" {
-			stripHandler["strip_path_prefix"] = r.StripPrefix
-		}
-		if r.StripSuffix != "" {
-			stripHandler["strip_path_suffix"] = r.StripSuffix
-		}
-		routes = append(routes, map[string]interface{}{
-			"handle": []map[string]string{stripHandler},
-		})
-	}
-
-	targetPath := r.TargetPath
-	if targetPath == "" && r.AddPrefix != "" {
-		// TODO: Deprecate AddPrefix
-		// Convert AddPrefix to TargetPath for compatibility.
-		targetPath = r.AddPrefix + "$"
-	}
-	if targetPath != "" {
-		// `$` is a placeholder for the path component of the request URI,
-		// and it should occur at most once.
-		targetPath = strings.Replace(targetPath, "$", "{http.request.uri.path}", 1)
-		routes = append(routes, map[string]interface{}{
-			"handle": []map[string]string{
-				{
-					"handler": "rewrite",
-					"uri":     targetPath,
-				},
-			},
-		})
-	}
-
-	service := services[r.ServiceName]
+	routes = append(routes, manipulateURI(r.URI, nil)...)
 
 	appliedPlugins, err := findAppliedPlugins(plugins, r)
 	if err != nil {
@@ -239,8 +204,61 @@ func buildSubRoutes(r *olaf.Route, services map[string]*olaf.Service, plugins ma
 	}
 
 	// Normal reverse-proxy routes must come after canary reverse-proxy routes.
+	service := services[r.ServiceName]
 	routes = append(routes, reverseProxy(service, nil))
 	return
+}
+
+func manipulateURI(uri olaf.URI, matcher map[string]interface{}) (routes []map[string]interface{}) {
+	if uri.StripPrefix != "" || uri.StripSuffix != "" {
+		stripHandler := map[string]string{
+			"handler": "rewrite",
+		}
+		if uri.StripPrefix != "" {
+			stripHandler["strip_path_prefix"] = uri.StripPrefix
+		}
+		if uri.StripSuffix != "" {
+			stripHandler["strip_path_suffix"] = uri.StripSuffix
+		}
+		routes = append(routes, addRouteMatcher(
+			map[string]interface{}{
+				"handle": []map[string]string{stripHandler},
+			},
+			matcher,
+		))
+	}
+
+	targetPath := uri.TargetPath
+	if targetPath == "" && uri.AddPrefix != "" {
+		// TODO: Deprecate AddPrefix
+		// Convert AddPrefix to TargetPath for compatibility.
+		targetPath = uri.AddPrefix + "$"
+	}
+	if targetPath != "" {
+		// `$` is a placeholder for the path component of the request URI,
+		// and it should occur at most once.
+		targetPath = strings.Replace(targetPath, "$", "{http.request.uri.path}", 1)
+		routes = append(routes, addRouteMatcher(
+			map[string]interface{}{
+				"handle": []map[string]string{
+					{
+						"handler": "rewrite",
+						"uri":     targetPath,
+					},
+				},
+			},
+			matcher,
+		))
+	}
+
+	return
+}
+
+func addRouteMatcher(route, matcher map[string]interface{}) map[string]interface{} {
+	if len(route) > 0 && len(matcher) > 0 {
+		route["match"] = []map[string]interface{}{matcher}
+	}
+	return route
 }
 
 // findAppliedPlugins finds the plugins that have been applied to the given route.
@@ -386,6 +404,7 @@ func canaryReverseProxy(p *olaf.Plugin, services map[string]*olaf.Service) (rout
 			panic(fmt.Errorf("invalid config of plugin %q: `matcher` and (`key`, `type`, `whitelist`) are mutually exclusive", p.Name))
 		}
 
+		routes = append(routes, manipulateURI(config.URI, config.Matcher)...)
 		routes = append(routes, reverseProxy(s, config.Matcher))
 		return
 	}
@@ -410,6 +429,7 @@ func canaryReverseProxy(p *olaf.Plugin, services map[string]*olaf.Service) (rout
 	matcher := map[string]interface{}{
 		"expression": expr,
 	}
+	routes = append(routes, manipulateURI(config.URI, matcher)...)
 	routes = append(routes, reverseProxy(s, matcher))
 
 	return

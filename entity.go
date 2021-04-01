@@ -155,6 +155,15 @@ type Service struct {
 	MaxRequests int    `json:"max_requests" yaml:"max_requests"`
 }
 
+// URI manipulations.
+type URI struct {
+	StripPrefix string `json:"strip_prefix" yaml:"strip_prefix" mapstructure:"strip_prefix"`
+	StripSuffix string `json:"strip_suffix" yaml:"strip_suffix" mapstructure:"strip_suffix"`
+	TargetPath  string `json:"target_path" yaml:"target_path" mapstructure:"target_path"`
+	// TODO: Deprecate AddPrefix
+	AddPrefix string `json:"add_prefix" yaml:"add_prefix" mapstructure:"add_prefix"`
+}
+
 type Route struct {
 	ServiceName string `json:"service_name" yaml:"service_name"`
 
@@ -164,11 +173,7 @@ type Route struct {
 	Hosts   []string `json:"hosts" yaml:"hosts"`
 	Paths   []string `json:"paths" yaml:"paths"`
 
-	StripPrefix string `json:"strip_prefix" yaml:"strip_prefix"`
-	StripSuffix string `json:"strip_suffix" yaml:"strip_suffix"`
-	TargetPath  string `json:"target_path" yaml:"target_path"`
-	// TODO: Deprecate AddPrefix
-	AddPrefix string `json:"add_prefix" yaml:"add_prefix"`
+	URI `yaml:",inline"`
 
 	// Routes will be matched from highest priority to lowest.
 	Priority int `json:"priority" yaml:"priority"`
@@ -196,6 +201,8 @@ type PluginCanaryConfig struct {
 	// The advanced matcher.
 	// See https://caddyserver.com/docs/json/apps/http/servers/routes/match/
 	Matcher map[string]interface{} `json:"matcher" yaml:"matcher" mapstructure:"matcher"`
+
+	URI `yaml:",inline" mapstructure:",squash"`
 }
 
 type Data struct {

@@ -128,6 +128,10 @@ The Config of the Canary Plugin:
 | `type` | | The type of key. Default: `""` (string). |
 | `whitelist` | √ | The whitelist defined in a [CEL expression](https://caddyserver.com/docs/caddyfile/matchers#expression) (using `$` as a placeholder for the value of key). If the key value is in the whitelist, the corresponding request will be routed to the service specified by `upstream`. |
 | `matcher` | | The advanced matcher, which can consist of various [Caddy matchers](https://caddyserver.com/docs/json/apps/http/servers/routes/match/) or your own ones. **NOTE**: `matcher` and (`key`, `type`, `whitelist`) are mutually exclusive. |
+| `strip_prefix` | | The [prefix](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/rewrite/strip_path_prefix/) that needs to be stripped from the request path. Default: `""` (no stripping). |
+| `strip_suffix` | | The [suffix](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/rewrite/strip_path_suffix/) that needs to be stripped from the request path. Default: `""` (no stripping). |
+| `target_path` | | The final path when the request is proxied to the upstream service (using `$` as a placeholder for the request path, which may have been stripped). Default: `""` (leave the request path as is, i.e. `"$"`). |
+| `add_prefix` | | The prefix that needs to be added to the final path. Default: `""` (no adding). |
 
 ### Example
 
