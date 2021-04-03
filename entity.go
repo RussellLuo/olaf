@@ -205,7 +205,7 @@ type Route struct {
 	Response *Response `json:"response" yaml:"response"`
 
 	// Routes will be matched from highest priority to lowest.
-	Priority int `json:"priority" yaml:"priority"`
+	Priority float64 `json:"priority" yaml:"priority"`
 }
 
 type Plugin struct {

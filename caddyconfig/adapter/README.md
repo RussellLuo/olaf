@@ -94,7 +94,7 @@ The Route entity:
 | `strip_suffix` | | The [suffix](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/rewrite/strip_path_suffix/) that needs to be stripped from the request path. Default: `""` (no stripping). |
 | `target_path` | | The final path when the request is proxied to the target service (using `$` as a placeholder for the request path, which may have been stripped). Default: `""` (leave the request path as is, i.e. `"$"`). |
 | `add_prefix` | | The prefix that needs to be added to the final path. Default: `""` (no adding). |
-| `priority` | | The priority of this Route. Default: `0`. Routes will be matched from highest priority to lowest. |
+| `priority` | | The priority of this Route. Default: `0`. All the services' routes will be matched from highest priority to lowest. |
 | `plugins` | | A list of Plugins applied to this Route. Default: `[]`. Similar to Kong's [Plugin Object](https://docs.konghq.com/2.2.x/admin-api/#plugin-object). |
 | `response` | | The static response (see `StaticResponse`) for this Route, which indicates that the request will not be proxied to the target service. Default: `nil` (no static response). |
 
