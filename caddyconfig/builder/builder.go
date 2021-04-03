@@ -71,7 +71,7 @@ func buildCaddyRoutes(data *olaf.Data) (routes []map[string]interface{}) {
 	// before all the services' routes.
 	for _, r := range data.Server.BeforeResponses {
 		routes = append(routes, map[string]interface{}{
-			"match":  buildRouteMatches(r.Methods, r.Hosts, r.Paths),
+			"match":  buildRouteMatches(r.StaticResponseMatcher.Matcher()),
 			"handle": buildStaticResponse(r.StatusCode, r.Headers, r.Body, r.Close),
 		})
 	}
@@ -84,7 +84,7 @@ func buildCaddyRoutes(data *olaf.Data) (routes []map[string]interface{}) {
 		}
 
 		routes = append(routes, map[string]interface{}{
-			"match": buildRouteMatches(r.Methods, r.Hosts, r.Paths),
+			"match": buildRouteMatches(r.Matcher),
 			"handle": []map[string]interface{}{
 				{
 					"handler": "subroute",
@@ -98,7 +98,7 @@ func buildCaddyRoutes(data *olaf.Data) (routes []map[string]interface{}) {
 	// after all the services' routes.
 	for _, r := range data.Server.AfterResponses {
 		routes = append(routes, map[string]interface{}{
-			"match":  buildRouteMatches(r.Methods, r.Hosts, r.Paths),
+			"match":  buildRouteMatches(r.StaticResponseMatcher.Matcher()),
 			"handle": buildStaticResponse(r.StatusCode, r.Headers, r.Body, r.Close),
 		})
 	}
@@ -136,11 +136,11 @@ func sortRoutes(r map[string]*olaf.Route) (routes []*olaf.Route) {
 	return
 }
 
-func buildRouteMatches(methods, hosts, paths []string) (matches []map[string]interface{}) {
+func buildRouteMatches(matcher olaf.Matcher) (matches []map[string]interface{}) {
 	// Differentiate regexp paths from normal paths.
 	var normalPaths []string
 	regexPaths := make(map[string]string)
-	for _, p := range paths {
+	for _, p := range matcher.Paths {
 		result := reRegexpPath.FindStringSubmatch(p)
 		if len(result) > 0 {
 			name, path := result[1], result[2]
@@ -150,35 +150,37 @@ func buildRouteMatches(methods, hosts, paths []string) (matches []map[string]int
 		}
 	}
 
-	// Build a match for normal paths.
-	if len(normalPaths) > 0 {
-		m := map[string]interface{}{
-			"path": normalPaths,
+	buildMatch := func(m map[string]interface{}) map[string]interface{} {
+		if matcher.Protocol != "" {
+			m["protocol"] = matcher.Protocol
 		}
-		if len(methods) > 0 {
-			m["method"] = methods
+		if len(matcher.Methods) > 0 {
+			m["method"] = matcher.Methods
 		}
-		if len(hosts) > 0 {
-			m["host"] = hosts
+		if len(matcher.Hosts) > 0 {
+			m["host"] = matcher.Hosts
 		}
-		matches = append(matches, m)
+		if len(matcher.Headers) > 0 {
+			m["header"] = matcher.Headers
+		}
+		return m
 	}
 
-	// Build matches for regexp paths.
+	// Build a match for normal paths.
+	if len(normalPaths) > 0 {
+		matches = append(matches, buildMatch(map[string]interface{}{
+			"path": normalPaths,
+		}))
+	}
+
+	// Build a match for regexp paths.
 	for p, n := range regexPaths {
-		m := map[string]interface{}{
+		matches = append(matches, buildMatch(map[string]interface{}{
 			"path_regexp": map[string]string{
 				"name":    n,
 				"pattern": p,
 			},
-		}
-		if len(methods) > 0 {
-			m["method"] = methods
-		}
-		if len(hosts) > 0 {
-			m["host"] = hosts
-		}
-		matches = append(matches, m)
+		}))
 	}
 
 	return

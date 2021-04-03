@@ -25,10 +25,27 @@ const (
 	PluginTypeCanary = "canary"
 )
 
+type StaticResponseMatcher struct {
+	Protocol   string
+	Methods    []string `json:"methods" yaml:"methods"`
+	Hosts      []string `json:"hosts" yaml:"hosts"`
+	Paths      []string `json:"paths" yaml:"paths"`
+	ReqHeaders map[string][]string
+}
+
+func (m StaticResponseMatcher) Matcher() Matcher {
+	return Matcher{
+		Protocol: m.Protocol,
+		Methods:  m.Methods,
+		Hosts:    m.Hosts,
+		Paths:    m.Paths,
+		Headers:  m.ReqHeaders,
+	}
+}
+
 type StaticResponse struct {
-	Methods    []string            `json:"methods" yaml:"methods"`
-	Hosts      []string            `json:"hosts" yaml:"hosts"`
-	Paths      []string            `json:"paths" yaml:"paths"`
+	StaticResponseMatcher `yaml:",inline"`
+
 	StatusCode int                 `json:"status_code" yaml:"status_code"`
 	Headers    map[string][]string `json:"headers" yaml:"headers"`
 	Body       string              `json:"body" yaml:"body"`
@@ -155,7 +172,16 @@ type Service struct {
 	MaxRequests int    `json:"max_requests" yaml:"max_requests"`
 }
 
-// URI manipulations.
+// Matching rules for a route.
+type Matcher struct {
+	Protocol string              `json:"protocol" yaml:"protocol"`
+	Methods  []string            `json:"methods" yaml:"methods"`
+	Hosts    []string            `json:"hosts" yaml:"hosts"`
+	Paths    []string            `json:"paths" yaml:"paths"`
+	Headers  map[string][]string `json:"headers" yaml:"headers"`
+}
+
+// URI manipulations for a route.
 type URI struct {
 	StripPrefix string `json:"strip_prefix" yaml:"strip_prefix" mapstructure:"strip_prefix"`
 	StripSuffix string `json:"strip_suffix" yaml:"strip_suffix" mapstructure:"strip_suffix"`
@@ -168,12 +194,9 @@ type Route struct {
 	ServiceName string `json:"service_name" yaml:"service_name"`
 
 	// Route name must be unique.
-	Name    string   `json:"name" yaml:"name"`
-	Methods []string `json:"methods" yaml:"methods"`
-	Hosts   []string `json:"hosts" yaml:"hosts"`
-	Paths   []string `json:"paths" yaml:"paths"`
-
-	URI `yaml:",inline"`
+	Name    string `json:"name" yaml:"name"`
+	Matcher `yaml:",inline"`
+	URI     `yaml:",inline"`
 
 	// Routes will be matched from highest priority to lowest.
 	Priority int `json:"priority" yaml:"priority"`

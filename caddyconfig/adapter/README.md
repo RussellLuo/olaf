@@ -99,9 +99,11 @@ The Route entity:
 | Attribute | Required | Description |
 | --- | --- | --- |
 | `name` | | The name of this Route. Default: `"<service_name>_route_<i>"` (`<i>` is the index of this route in the array). |
+| `protocol` | | The request [protocol](https://caddyserver.com/docs/caddyfile/matchers#protocol) that matches this Route. Default: `""` (any protocol). |
 | `methods` | | A list of [HTTP methods](https://caddyserver.com/docs/caddyfile/matchers#method) that match this Route. Default: `[]` (any HTTP method). |
 | `hosts` | | A list of [hosts](https://caddyserver.com/docs/caddyfile/matchers#host) that match this Route. Default: `[]` (any host). |
 | `paths` | √ | A list of [URI paths](https://caddyserver.com/docs/caddyfile/matchers#path) that match this Route. A special prefix `~:` means a [regexp path](https://caddyserver.com/docs/caddyfile/matchers#path-regexp). |
+| `headers` | √ | A list of [headers](https://caddyserver.com/docs/caddyfile/matchers#header) that match this Route. Default: `[]` (any header). |
 | `strip_prefix` | | The [prefix](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/rewrite/strip_path_prefix/) that needs to be stripped from the request path. Default: `""` (no stripping). |
 | `strip_suffix` | | The [suffix](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/rewrite/strip_path_suffix/) that needs to be stripped from the request path. Default: `""` (no stripping). |
 | `target_path` | | The final path when the request is proxied to the target service (using `$` as a placeholder for the request path, which may have been stripped). Default: `""` (leave the request path as is, i.e. `"$"`). |
