@@ -25,6 +25,7 @@ const (
 	PluginTypeCanary = "canary"
 )
 
+// DEPRECATED
 type StaticResponseMatcher struct {
 	Protocol   string
 	Methods    []string `json:"methods" yaml:"methods"`
@@ -43,13 +44,10 @@ func (m StaticResponseMatcher) Matcher() Matcher {
 	}
 }
 
+// DEPRECATED
 type StaticResponse struct {
 	StaticResponseMatcher `yaml:",inline"`
-
-	StatusCode int                 `json:"status_code" yaml:"status_code"`
-	Headers    map[string][]string `json:"headers" yaml:"headers"`
-	Body       string              `json:"body" yaml:"body"`
-	Close      bool                `json:"close" yaml:"close"`
+	Response              `yaml:",inline"`
 }
 
 func (ss *StaticResponse) Init() {
@@ -190,13 +188,21 @@ type URI struct {
 	AddPrefix string `json:"add_prefix" yaml:"add_prefix" mapstructure:"add_prefix"`
 }
 
+type Response struct {
+	StatusCode int                 `json:"status_code" yaml:"status_code"`
+	Headers    map[string][]string `json:"headers" yaml:"headers"`
+	Body       string              `json:"body" yaml:"body"`
+	Close      bool                `json:"close" yaml:"close"`
+}
+
 type Route struct {
 	ServiceName string `json:"service_name" yaml:"service_name"`
 
 	// Route name must be unique.
-	Name    string `json:"name" yaml:"name"`
-	Matcher `yaml:",inline"`
-	URI     `yaml:",inline"`
+	Name     string `json:"name" yaml:"name"`
+	Matcher  `yaml:",inline"`
+	URI      `yaml:",inline"`
+	Response *Response `json:"response" yaml:"response"`
 
 	// Routes will be matched from highest priority to lowest.
 	Priority int `json:"priority" yaml:"priority"`

@@ -187,6 +187,16 @@ func buildRouteMatches(matcher olaf.Matcher) (matches []map[string]interface{}) 
 }
 
 func buildSubRoutes(r *olaf.Route, services map[string]*olaf.Service, plugins map[string]*olaf.Plugin) (routes []map[string]interface{}) {
+	if r.Response != nil {
+		// This is a STATIC route, any other PROXY-related attributes will be ignored.
+		routes = append(routes, map[string]interface{}{
+			"handle": buildStaticResponse(r.Response.StatusCode, r.Response.Headers, r.Response.Body, r.Response.Close),
+		})
+		return
+	}
+
+	// This is a PROXY route.
+
 	routes = append(routes, manipulateURI(r.URI, nil)...)
 
 	appliedPlugins, err := findAppliedPlugins(plugins, r)
