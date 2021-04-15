@@ -3,16 +3,16 @@ package admin
 import (
 	"net/http"
 
-	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv2"
+	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
 	"github.com/RussellLuo/olaf"
 )
 
 type Codec struct {
-	httpcodec.JSONCodec
+	httpcodec.JSON
 }
 
 func (c Codec) EncodeFailureResponse(w http.ResponseWriter, err error) error {
-	return c.JSONCodec.EncodeSuccessResponse(w, codeFrom(err), map[string]string{
+	return c.JSON.EncodeSuccessResponse(w, codeFrom(err), map[string]string{
 		"error": err.Error(),
 	})
 }
@@ -30,8 +30,6 @@ func codeFrom(err error) int {
 	}
 }
 
-func NewCodecs() httpcodec.CodecMap {
-	return httpcodec.CodecMap{
-		Default: Codec{},
-	}
+func NewCodecs() *httpcodec.DefaultCodecs {
+	return httpcodec.NewDefaultCodecs(Codec{})
 }

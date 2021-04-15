@@ -7,7 +7,7 @@ import (
 	"context"
 	"net/http"
 
-	httpcodec "github.com/RussellLuo/kok/pkg/codec/httpv2"
+	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
 	"github.com/RussellLuo/kok/pkg/oasv2"
 	"github.com/go-chi/chi"
 	kithttp "github.com/go-kit/kit/transport/http"
@@ -242,7 +242,7 @@ func decodeCreatePluginRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc 
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req CreatePluginRequest
 
-		if err := codec.DecodeRequestBody(r.Body, &_req.P); err != nil {
+		if err := codec.DecodeRequestBody(r, &_req.P); err != nil {
 			return nil, err
 		}
 
@@ -254,7 +254,7 @@ func decodeCreateRouteRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req CreateRouteRequest
 
-		if err := codec.DecodeRequestBody(r.Body, &_req.Route); err != nil {
+		if err := codec.DecodeRequestBody(r, &_req.Route); err != nil {
 			return nil, err
 		}
 
@@ -266,7 +266,7 @@ func decodeCreateServiceRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req CreateServiceRequest
 
-		if err := codec.DecodeRequestBody(r.Body, &_req.Svc); err != nil {
+		if err := codec.DecodeRequestBody(r, &_req.Svc); err != nil {
 			return nil, err
 		}
 
@@ -278,7 +278,7 @@ func decodeDeletePluginRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc 
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req DeletePluginRequest
 
-		name := chi.URLParam(r, "name")
+		name := []string{chi.URLParam(r, "name")}
 		if err := codec.DecodeRequestParam("name", name, &_req.Name); err != nil {
 			return nil, err
 		}
@@ -291,7 +291,7 @@ func decodeDeleteRouteRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req DeleteRouteRequest
 
-		name := chi.URLParam(r, "name")
+		name := []string{chi.URLParam(r, "name")}
 		if err := codec.DecodeRequestParam("name", name, &_req.Name); err != nil {
 			return nil, err
 		}
@@ -304,7 +304,7 @@ func decodeDeleteServiceRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req DeleteServiceRequest
 
-		name := chi.URLParam(r, "name")
+		name := []string{chi.URLParam(r, "name")}
 		if err := codec.DecodeRequestParam("name", name, &_req.Name); err != nil {
 			return nil, err
 		}
@@ -317,7 +317,7 @@ func decodeGetPluginRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req GetPluginRequest
 
-		name := chi.URLParam(r, "name")
+		name := []string{chi.URLParam(r, "name")}
 		if err := codec.DecodeRequestParam("name", name, &_req.Name); err != nil {
 			return nil, err
 		}
@@ -330,7 +330,7 @@ func decodeGetRouteRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req GetRouteRequest
 
-		name := chi.URLParam(r, "name")
+		name := []string{chi.URLParam(r, "name")}
 		if err := codec.DecodeRequestParam("name", name, &_req.Name); err != nil {
 			return nil, err
 		}
@@ -349,7 +349,7 @@ func decodeGetServiceRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req GetServiceRequest
 
-		name := chi.URLParam(r, "name")
+		name := []string{chi.URLParam(r, "name")}
 		if err := codec.DecodeRequestParam("name", name, &_req.Name); err != nil {
 			return nil, err
 		}
@@ -380,11 +380,11 @@ func decodeUpdateRouteRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req UpdateRouteRequest
 
-		if err := codec.DecodeRequestBody(r.Body, &_req.Route); err != nil {
+		if err := codec.DecodeRequestBody(r, &_req.Route); err != nil {
 			return nil, err
 		}
 
-		name := chi.URLParam(r, "name")
+		name := []string{chi.URLParam(r, "name")}
 		if err := codec.DecodeRequestParam("name", name, &_req.Name); err != nil {
 			return nil, err
 		}
@@ -397,7 +397,7 @@ func decodeUpdateServerRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc 
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req UpdateServerRequest
 
-		if err := codec.DecodeRequestBody(r.Body, &_req.Server); err != nil {
+		if err := codec.DecodeRequestBody(r, &_req.Server); err != nil {
 			return nil, err
 		}
 
@@ -409,11 +409,11 @@ func decodeUpdateServiceRequest(codec httpcodec.Codec) kithttp.DecodeRequestFunc
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req UpdateServiceRequest
 
-		if err := codec.DecodeRequestBody(r.Body, &_req.Svc); err != nil {
+		if err := codec.DecodeRequestBody(r, &_req.Svc); err != nil {
 			return nil, err
 		}
 
-		name := chi.URLParam(r, "name")
+		name := []string{chi.URLParam(r, "name")}
 		if err := codec.DecodeRequestParam("name", name, &_req.Name); err != nil {
 			return nil, err
 		}
