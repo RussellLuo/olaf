@@ -77,6 +77,8 @@ The Service entity:
 | `url`	| √ | The [network address to dial](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/upstreams/dial/) to connect to this Service. |
 | `dial_timeout` | | The [duration string](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/transport/http/dial_timeout/), which indicates how long to wait before timing out trying to connect to this Service. Default: `""` (no timeout). |
 | `max_requests` | | The [maximum number of simultaneous requests](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/upstreams/max_requests/) to allow to this Service. Default: `0` (no limit). |
+| `header_up` | | Sets, adds or removes header fields in a request going upstream to the backend (see [docs](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/headers/request/)). Default: `{}` (no header manipulation). |
+| `header_down` | | Sets, adds or removes header fields in a response header coming downstream from the backend (see [docs](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/headers/response/)). Default: `{}` (no header manipulation). |
 | `routes` | √ | A list of Routes associated to this Service. Similar to Kong's [Route Object](https://docs.konghq.com/2.2.x/admin-api/#route-object). |
 | `plugins` | | A list of Plugins applied to this Service. Default: `[]`. Similar to Kong's [Plugin Object](https://docs.konghq.com/2.2.x/admin-api/#plugin-object). |
 
@@ -96,7 +98,7 @@ The Route entity:
 | `add_prefix` | | The prefix that needs to be added to the final path. Default: `""` (no adding). |
 | `priority` | | The priority of this Route. Default: `0`. All the services' routes will be matched from highest priority to lowest. |
 | `plugins` | | A list of Plugins applied to this Route. Default: `[]`. Similar to Kong's [Plugin Object](https://docs.konghq.com/2.2.x/admin-api/#plugin-object). |
-| `response` | | The static response (see `StaticResponse`) for this Route, which indicates that the request will not be proxied to the target service. Default: `nil` (no static response). |
+| `response` | | The static response (see `StaticResponse`) for this Route, which indicates that the request will not be proxied to the target service. Default: `{}` (no static response). |
 
 The [StaticResponse](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/static_response/) entity:
 

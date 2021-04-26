@@ -168,6 +168,19 @@ type Service struct {
 
 	DialTimeout string `json:"dial_timeout" yaml:"dial_timeout"`
 	MaxRequests int    `json:"max_requests" yaml:"max_requests"`
+
+	HeaderUp   *HeaderOps `json:"header_up" yaml:"header_up"`
+	HeaderDown *HeaderOps `json:"header_down" yaml:"header_down"`
+}
+
+// Header manipulations.
+type HeaderOps struct {
+	// Add new header fields or overwrite existing ones.
+	Set map[string][]string `json:"set" yaml:"set"`
+	// Add new header fields.
+	Add map[string][]string `json:"add" yaml:"add"`
+	// Remove header fields.
+	Delete []string `json:"delete" yaml:"delete"`
 }
 
 // Matching rules for a route.

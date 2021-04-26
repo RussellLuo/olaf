@@ -22,6 +22,9 @@ services:
   url: localhost:2222
   dial_timeout: 5s
   max_requests: 100
+  header_down:
+    add:
+      Server: ["Production"]
   routes:
   - hosts:
     - example.com
@@ -52,3 +55,6 @@ services:
   url: localhost:3333
   dial_timeout: 5s
   max_requests: 100
+  header_down:
+    add:
+      Server: ["Staging"]

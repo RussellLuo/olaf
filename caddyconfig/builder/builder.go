@@ -492,26 +492,53 @@ func reverseProxy(s *olaf.Service, matcher map[string]interface{}) map[string]in
 		}
 	}
 
-	route := map[string]interface{}{
-		"handle": []map[string]interface{}{
-			{
-				"handler": "reverse_proxy",
-				"upstreams": []map[string]interface{}{
-					buildUpstream(s.URL, s.MaxRequests),
-				},
-				"transport": map[string]interface{}{
-					"protocol":     "http",
-					"dial_timeout": timeout,
-				},
-			},
+	handle := map[string]interface{}{
+		"handler": "reverse_proxy",
+		"upstreams": []map[string]interface{}{
+			buildUpstream(s.URL, s.MaxRequests),
+		},
+		"transport": map[string]interface{}{
+			"protocol":     "http",
+			"dial_timeout": timeout,
 		},
 	}
 
+	// Manipulate headers if requested.
+	headers := make(map[string]interface{})
+	if s.HeaderUp != nil {
+		headers["request"] = manipulateHeader(s.HeaderUp)
+	}
+	if s.HeaderDown != nil {
+		headers["response"] = manipulateHeader(s.HeaderDown)
+	}
+	if len(headers) > 0 {
+		handle["headers"] = headers
+	}
+
+	route := map[string]interface{}{
+		"handle": []map[string]interface{}{handle},
+	}
+
+	// Add possible matching rules.
 	if len(matcher) > 0 {
 		route["match"] = []map[string]interface{}{matcher}
 	}
 
 	return route
+}
+
+func manipulateHeader(h *olaf.HeaderOps) map[string]interface{} {
+	m := make(map[string]interface{})
+	if len(h.Set) > 0 {
+		m["set"] = h.Set
+	}
+	if len(h.Add) > 0 {
+		m["add"] = h.Add
+	}
+	if len(h.Delete) > 0 {
+		m["delete"] = h.Delete
+	}
+	return m
 }
 
 func buildUpstream(url string, maxRequests int) map[string]interface{} {

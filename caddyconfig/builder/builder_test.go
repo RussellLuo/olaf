@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/RussellLuo/olaf"
 )
@@ -382,6 +383,81 @@ func TestPluginCanaryExpression(t *testing.T) {
 
 			if !reflect.DeepEqual(gotMatch, c.wantMatch) {
 				t.Fatalf("Match: got (%#v), want (%#v)", gotMatch, c.wantMatch)
+			}
+		})
+	}
+}
+
+func TestReverseProxy(t *testing.T) {
+	cases := []struct {
+		name      string
+		inService *olaf.Service
+		inMatcher map[string]interface{}
+		wantRoute map[string]interface{}
+	}{
+		{
+			name: "test",
+			inService: &olaf.Service{
+				Name:        "staging",
+				URL:         "localhost:8080",
+				DialTimeout: "5s",
+				MaxRequests: 100,
+				HeaderUp: &olaf.HeaderOps{
+					Set: map[string][]string{
+						"X-Request-Id": {"123456"},
+					},
+				},
+				HeaderDown: &olaf.HeaderOps{
+					Add: map[string][]string{
+						"X-Server": {"Staging"},
+					},
+				},
+			},
+			inMatcher: map[string]interface{}{
+				"host": []string{"example.com"},
+			},
+			wantRoute: map[string]interface{}{
+				"handle": []map[string]interface{}{
+					{
+						"handler": "reverse_proxy",
+						"upstreams": []map[string]interface{}{
+							{
+								"dial":         "localhost:8080",
+								"max_requests": 100,
+							},
+						},
+						"transport": map[string]interface{}{
+							"protocol":     "http",
+							"dial_timeout": 5 * time.Second,
+						},
+						"headers": map[string]interface{}{
+							"request": map[string]interface{}{
+								"set": map[string][]string{
+									"X-Request-Id": {"123456"},
+								},
+							},
+							"response": map[string]interface{}{
+								"add": map[string][]string{
+									"X-Server": {"Staging"},
+								},
+							},
+						},
+					},
+				},
+				"match": []map[string]interface{}{
+					{
+						"host": []string{"example.com"},
+					},
+				},
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			gotRoute := reverseProxy(c.inService, c.inMatcher)
+			if !reflect.DeepEqual(gotRoute, c.wantRoute) {
+				t.Fatalf("Route: got (%#v), want (%#v)", gotRoute, c.wantRoute)
 			}
 		})
 	}
