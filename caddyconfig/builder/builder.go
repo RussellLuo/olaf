@@ -67,15 +67,6 @@ func buildCaddyRoutes(data *olaf.Data) (routes []map[string]interface{}) {
 	services := data.Services
 	plugins := data.Plugins
 
-	// Build the routes for static before-responses, which will be matched
-	// before all the services' routes.
-	for _, r := range data.Server.BeforeResponses {
-		routes = append(routes, map[string]interface{}{
-			"match":  buildRouteMatches(r.StaticResponseMatcher.Matcher()),
-			"handle": buildStaticResponse(r.StatusCode, r.Headers, r.Body, r.Close),
-		})
-	}
-
 	// Build the routes from highest priority to lowest.
 	// The route that has a higher priority will be matched earlier.
 	for _, r := range sortRoutes(data.Routes) {
@@ -91,15 +82,6 @@ func buildCaddyRoutes(data *olaf.Data) (routes []map[string]interface{}) {
 					"routes":  buildSubRoutes(r, services, plugins),
 				},
 			},
-		})
-	}
-
-	// Build the routes for static after-responses, which will be matched
-	// after all the services' routes.
-	for _, r := range data.Server.AfterResponses {
-		routes = append(routes, map[string]interface{}{
-			"match":  buildRouteMatches(r.StaticResponseMatcher.Matcher()),
-			"handle": buildStaticResponse(r.StatusCode, r.Headers, r.Body, r.Close),
 		})
 	}
 

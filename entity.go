@@ -25,40 +25,6 @@ const (
 	PluginTypeCanary = "canary"
 )
 
-// DEPRECATED
-type StaticResponseMatcher struct {
-	Protocol   string
-	Methods    []string `json:"methods" yaml:"methods"`
-	Hosts      []string `json:"hosts" yaml:"hosts"`
-	Paths      []string `json:"paths" yaml:"paths"`
-	ReqHeaders map[string][]string
-}
-
-func (m StaticResponseMatcher) Matcher() Matcher {
-	return Matcher{
-		Protocol: m.Protocol,
-		Methods:  m.Methods,
-		Hosts:    m.Hosts,
-		Paths:    m.Paths,
-		Headers:  m.ReqHeaders,
-	}
-}
-
-// DEPRECATED
-type StaticResponse struct {
-	StaticResponseMatcher `yaml:",inline"`
-	Response              `yaml:",inline"`
-}
-
-func (ss *StaticResponse) Init() {
-	if len(ss.Paths) == 0 {
-		ss.Paths = []string{"/*"}
-	}
-	if ss.StatusCode == 0 {
-		ss.StatusCode = 200
-	}
-}
-
 type LogOutput struct {
 	Output       string `json:"output" yaml:"output"`
 	Filename     string `json:"filename" yaml:"filename"`
@@ -123,16 +89,14 @@ func (a *Admin) Init() {
 }
 
 type Server struct {
-	Listen          []string          `json:"listen" yaml:"listen"`
-	HTTPPort        int               `json:"http_port" yaml:"http_port"`
-	HTTPSPort       int               `json:"https_port" yaml:"https_port"`
-	EnableAutoHTTPS bool              `json:"enable_auto_https" yaml:"enable_auto_https"`
-	EnableDebug     bool              `json:"enable_debug" yaml:"enable_debug"`
-	DefaultLog      CaddyLog          `json:"default_log" yaml:"default_log"`
-	AccessLog       AccessLog         `json:"access_log" yaml:"access_log"`
-	Admin           Admin             `json:"admin" yaml:"admin"`
-	BeforeResponses []*StaticResponse `json:"before_responses" yaml:"before_responses"`
-	AfterResponses  []*StaticResponse `json:"after_responses" yaml:"after_responses"`
+	Listen          []string  `json:"listen" yaml:"listen"`
+	HTTPPort        int       `json:"http_port" yaml:"http_port"`
+	HTTPSPort       int       `json:"https_port" yaml:"https_port"`
+	EnableAutoHTTPS bool      `json:"enable_auto_https" yaml:"enable_auto_https"`
+	EnableDebug     bool      `json:"enable_debug" yaml:"enable_debug"`
+	DefaultLog      CaddyLog  `json:"default_log" yaml:"default_log"`
+	AccessLog       AccessLog `json:"access_log" yaml:"access_log"`
+	Admin           Admin     `json:"admin" yaml:"admin"`
 }
 
 func (s *Server) Init() {
@@ -153,13 +117,6 @@ func (s *Server) Init() {
 	s.DefaultLog.Init()
 	s.AccessLog.Init()
 	s.Admin.Init()
-
-	for _, ss := range s.BeforeResponses {
-		ss.Init()
-	}
-	for _, ss := range s.AfterResponses {
-		ss.Init()
-	}
 }
 
 type Service struct {
