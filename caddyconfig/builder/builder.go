@@ -88,19 +88,19 @@ func buildCaddyRoutes(data *olaf.Data) (routes []map[string]interface{}) {
 	return
 }
 
-func buildStaticResponse(statusCode int, headers map[string][]string, body string, close bool) []map[string]interface{} {
+func buildStaticResponse(resp *olaf.StaticResponse) []map[string]interface{} {
 	m := map[string]interface{}{
 		"handler":     "static_response",
-		"status_code": statusCode,
+		"status_code": resp.StatusCode,
 	}
-	if len(headers) > 0 {
-		m["headers"] = headers
+	if len(resp.Headers) > 0 {
+		m["headers"] = resp.Headers
 	}
-	if body != "" {
-		m["body"] = body
+	if resp.Body != "" {
+		m["body"] = resp.Body
 	}
-	if close {
-		m["close"] = close
+	if resp.Close {
+		m["close"] = resp.Close
 	}
 	return []map[string]interface{}{m}
 }
@@ -172,7 +172,7 @@ func buildSubRoutes(r *olaf.Route, services map[string]*olaf.Service, plugins ma
 	if r.Response != nil {
 		// This is a STATIC route, any other PROXY-related attributes will be ignored.
 		routes = append(routes, map[string]interface{}{
-			"handle": buildStaticResponse(r.Response.StatusCode, r.Response.Headers, r.Response.Body, r.Response.Close),
+			"handle": buildStaticResponse(r.Response),
 		})
 		return
 	}

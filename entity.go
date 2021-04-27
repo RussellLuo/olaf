@@ -158,7 +158,7 @@ type URI struct {
 	AddPrefix string `json:"add_prefix" yaml:"add_prefix" mapstructure:"add_prefix"`
 }
 
-type Response struct {
+type StaticResponse struct {
 	StatusCode int                 `json:"status_code" yaml:"status_code"`
 	Headers    map[string][]string `json:"headers" yaml:"headers"`
 	Body       string              `json:"body" yaml:"body"`
@@ -172,7 +172,7 @@ type Route struct {
 	Name     string `json:"name" yaml:"name"`
 	Matcher  `yaml:",inline"`
 	URI      `yaml:",inline"`
-	Response *Response `json:"response" yaml:"response"`
+	Response *StaticResponse `json:"response" yaml:"response"`
 
 	// Routes will be matched from highest priority to lowest.
 	Priority float64 `json:"priority" yaml:"priority"`
