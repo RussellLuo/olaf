@@ -23,10 +23,10 @@ type Apps struct {
 	} `json:"http"`
 }
 
-// Adapter adapts Olaf YAML config to Caddy JSON.
+// Adapter adapts Olaf's YAML config to Caddy JSON.
 type Adapter struct{}
 
-// Adapt converts the Olaf YAML config in body to Caddy JSON.
+// Adapt converts the Olaf's YAML config in body to Caddy JSON.
 func (Adapter) Adapt(body []byte, options map[string]interface{}) ([]byte, []caddyconfig.Warning, error) {
 	caddyfileAdapter := caddyconfig.GetAdapter("caddyfile")
 	caddyfileResult, warn, err := caddyfileAdapter.Adapt(body, options)
@@ -68,7 +68,7 @@ func patch(caddyfileResult []byte) ([]byte, error) {
 }
 
 // expandOlaf replaces the original `olaf` handler with a `subroute` handler,
-// whose routes are parsed from the associated YAML file.
+// whose routes are built by parsing the Olaf's declarative configuration in YAML.
 func expandOlaf(routes []map[string]interface{}) error {
 NextRoute:
 	for _, r := range routes {
@@ -100,9 +100,6 @@ NextRoute:
 				if err := expandOlaf(subRoutes); err != nil {
 					return err
 				}
-
-				// We assume that there is only one `olaf` handler in the list.
-				continue NextRoute
 			}
 		}
 	}
