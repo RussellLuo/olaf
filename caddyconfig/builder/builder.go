@@ -63,6 +63,10 @@ func Build(data *olaf.Data) (conf map[string]interface{}, err error) {
 	return
 }
 
+func BuildRoutes(data *olaf.Data) []map[string]interface{} {
+	return buildCaddyRoutes(data)
+}
+
 func buildCaddyRoutes(data *olaf.Data) (routes []map[string]interface{}) {
 	services := data.Services
 	plugins := data.Plugins

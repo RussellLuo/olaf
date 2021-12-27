@@ -1,0 +1,7 @@
+{
+    order olaf last
+}
+
+localhost {
+    olaf apis.yaml
+}
