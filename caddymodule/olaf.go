@@ -48,26 +48,24 @@ func (o *Olaf) ServeHTTP(w http.ResponseWriter, r *http.Request, next caddyhttp.
 //    olaf <filename>
 //
 func (o *Olaf) UnmarshalCaddyfile(d *caddyfile.Dispenser) (err error) {
-	for d.Next() {
-		if !d.NextArg() {
-			return d.ArgErr()
-		}
-		path := d.Val()
+	if !d.Next() || !d.NextArg() {
+		return d.ArgErr()
+	}
+	path := d.Val()
 
-		if filepath.IsAbs(path) {
-			o.Filename = path
-			return nil
-		}
-
-		// Make the path relative to the current Caddyfile rather than the
-		// current working directory.
-		absFile, err := filepath.Abs(d.File())
-		if err != nil {
-			return fmt.Errorf("failed to get absolute path of file: %s: %v", d.File(), err)
-		}
-		o.Filename = filepath.Join(filepath.Dir(absFile), path)
+	if filepath.IsAbs(path) {
+		o.Filename = path
 		return nil
 	}
+
+	// Make the path relative to the current Caddyfile rather than the
+	// current working directory.
+	absFile, err := filepath.Abs(d.File())
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path of file: %s: %v", d.File(), err)
+	}
+	o.Filename = filepath.Join(filepath.Dir(absFile), path)
+
 	return nil
 }
 
