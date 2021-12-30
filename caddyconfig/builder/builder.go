@@ -469,6 +469,10 @@ func parseVar(s string, p *olaf.Plugin) (v string, err error) {
 }
 
 func reverseProxy(s *olaf.Service, matcher map[string]interface{}) map[string]interface{} {
+	if s.Upstream != nil {
+		return newReverseProxy(s, matcher)
+	}
+
 	var timeout time.Duration
 	if s.DialTimeout != "" {
 		var err error
@@ -496,6 +500,123 @@ func reverseProxy(s *olaf.Service, matcher map[string]interface{}) map[string]in
 	}
 	if s.HeaderDown != nil {
 		headers["response"] = manipulateHeader(s.HeaderDown)
+	}
+	if len(headers) > 0 {
+		handle["headers"] = headers
+	}
+
+	route := map[string]interface{}{
+		"handle": []map[string]interface{}{handle},
+	}
+
+	// Add possible matching rules.
+	if len(matcher) > 0 {
+		route["match"] = []map[string]interface{}{matcher}
+	}
+
+	return route
+}
+
+func newReverseProxy(s *olaf.Service, matcher map[string]interface{}) map[string]interface{} {
+	u := s.Upstream
+	if u == nil {
+		panic(fmt.Errorf("service %q has no upstream", s.Name))
+	}
+
+	handle := map[string]interface{}{
+		"handler": "reverse_proxy",
+	}
+
+	if len(u.Backends) == 0 {
+		panic(fmt.Errorf("service %q has no upstream.backends", s.Name))
+	}
+
+	var upstreams []map[string]interface{}
+	for _, b := range u.Backends {
+		upstreams = append(upstreams, buildUpstream(b.Dial, b.MaxRequests))
+	}
+	handle["upstreams"] = upstreams
+
+	if u.HTTP != nil {
+		var timeout time.Duration
+		if u.HTTP.DialTimeout != "" {
+			var err error
+			timeout, err = time.ParseDuration(u.HTTP.DialTimeout)
+			if err != nil {
+				panic(fmt.Errorf("failed to parse upstream.dial_timeout of service %q: %v", s.Name, err))
+			}
+		}
+		handle["transport"] = map[string]interface{}{
+			"protocol":     "http",
+			"dial_timeout": timeout,
+		}
+	}
+
+	// Add config for Load balancing.
+	if u.LoadBalancing != nil {
+		policy := u.LoadBalancing.Policy
+		if policy == "" {
+			policy = "random"
+		}
+		lb := map[string]interface{}{
+			"selection_policy": map[string]string{"policy": policy},
+		}
+		if len(u.LoadBalancing.TryDuration) > 0 {
+			d, err := time.ParseDuration(u.LoadBalancing.TryDuration)
+			if err != nil {
+				panic(fmt.Errorf("failed to parse upstream.lb_try_duration of service %q: %v", s.Name, err))
+			}
+			lb["try_duration"] = d
+		}
+		if len(u.LoadBalancing.Interval) > 0 {
+			d, err := time.ParseDuration(u.LoadBalancing.Interval)
+			if err != nil {
+				panic(fmt.Errorf("failed to parse upstream.lb_try_interval of service %q: %v", s.Name, err))
+			}
+			lb["interval"] = d
+		}
+
+		handle["load_balancing"] = lb
+	}
+
+	// Add config for Active health checking.
+	if u.ActiveHealthChecks != nil {
+		activeHC := map[string]interface{}{
+			"uri": u.ActiveHealthChecks.URI,
+		}
+		if u.ActiveHealthChecks.Port > 0 {
+			activeHC["port"] = u.ActiveHealthChecks.Port
+		}
+		if len(u.ActiveHealthChecks.Interval) > 0 {
+			d, err := time.ParseDuration(u.ActiveHealthChecks.Interval)
+			if err != nil {
+				panic(fmt.Errorf("failed to parse upstream.health_interval of service %q: %v", s.Name, err))
+			}
+			activeHC["interval"] = d
+		}
+		if len(u.ActiveHealthChecks.Timeout) > 0 {
+			d, err := time.ParseDuration(u.ActiveHealthChecks.Timeout)
+			if err != nil {
+				panic(fmt.Errorf("failed to parse upstream.health_timeout of service %q: %v", s.Name, err))
+			}
+			activeHC["timeout"] = d
+		}
+		if u.ActiveHealthChecks.StatusCode > 0 {
+			activeHC["expect_status"] = u.ActiveHealthChecks.StatusCode
+		}
+
+		handle["health_checks"] = map[string]interface{}{
+			"active": activeHC,
+		}
+	}
+
+	// Manipulate headers if requested.
+	headers := make(map[string]interface{})
+	if u.HeaderUp != nil {
+		headers["request"] = manipulateHeader(u.HeaderUp)
+	}
+	if u.HeaderDown != nil {
+		headers["response"] = manipulateHeader(u.HeaderDown)
 	}
 	if len(headers) > 0 {
 		handle["headers"] = headers

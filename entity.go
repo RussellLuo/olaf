@@ -120,14 +120,50 @@ func (s *Server) Init() {
 }
 
 type Service struct {
-	Name string `json:"name" yaml:"name"`
-	URL  string `json:"url" yaml:"url"`
+	Name     string    `json:"name" yaml:"name"`
+	Upstream *Upstream `json:"upstream" yaml:"upstream"`
 
+	URL         string `json:"url" yaml:"url"`
 	DialTimeout string `json:"dial_timeout" yaml:"dial_timeout"`
 	MaxRequests int    `json:"max_requests" yaml:"max_requests"`
 
 	HeaderUp   *HeaderOps `json:"header_up" yaml:"header_up"`
 	HeaderDown *HeaderOps `json:"header_down" yaml:"header_down"`
+}
+
+type Upstream struct {
+	Backends []*Backend `json:"backends" yaml:"backends"`
+
+	HTTP *TransportHTTP `json:"http" yaml:"http"`
+
+	LoadBalancing      *LoadBalancing      `json:"lb" yaml:"lb"`
+	ActiveHealthChecks *ActiveHealthChecks `json:"active_hc" yaml:"active_hc"`
+
+	HeaderUp   *HeaderOps `json:"header_up" yaml:"header_up"`
+	HeaderDown *HeaderOps `json:"header_down" yaml:"header_down"`
+}
+
+type Backend struct {
+	Dial        string `json:"dial" yaml:"dial"`
+	MaxRequests int    `json:"max_requests" yaml:"max_requests"`
+}
+
+type TransportHTTP struct {
+	DialTimeout string `json:"dial_timeout" yaml:"dial_timeout"`
+}
+
+type LoadBalancing struct {
+	Policy      string `json:"policy" yaml:"policy"`
+	TryDuration string `json:"try_duration" yaml:"try_duration"`
+	Interval    string `json:"interval" yaml:"interval"`
+}
+
+type ActiveHealthChecks struct {
+	URI        string `json:"uri" yaml:"uri"`
+	Port       int    `json:"port" yaml:"port"`
+	Interval   string `json:"interval" yaml:"interval"`
+	Timeout    string `json:"timeout" yaml:"timeout"`
+	StatusCode int    `json:"status_code" yaml:"status_code"`
 }
 
 // Header manipulations.

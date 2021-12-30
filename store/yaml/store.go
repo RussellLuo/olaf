@@ -167,16 +167,58 @@ func Parse(in []byte) (*olaf.Data, error) {
 	}
 
 	for i, s := range c.Services { // global services
-		if s.Service.Name == "" {
-			s.Service.Name = fmt.Sprintf("service_%d", i)
+		if s.Name == "" {
+			s.Name = fmt.Sprintf("service_%d", i)
 		}
-		data.Services[s.Service.Name] = s.Service
+
+		var u *olaf.Upstream
+		if s.Upstream != nil {
+			var backends []*olaf.Backend
+			for _, url := range s.Upstream.Backends {
+				backends = append(backends, &olaf.Backend{
+					Dial:        url,
+					MaxRequests: s.Upstream.MaxRequests,
+				})
+			}
+			u = &olaf.Upstream{
+				Backends: backends,
+				HTTP:     &olaf.TransportHTTP{DialTimeout: s.Upstream.DialTimeout},
+				HeaderUp:   s.Upstream.HeaderUp,
+				HeaderDown: s.Upstream.HeaderDown,
+			}
+			if s.Upstream.LBPolicy != "" || s.Upstream.LBTryDuration != "" || s.Upstream.LBTryInterval != "" {
+				u.LoadBalancing= &olaf.LoadBalancing{
+					Policy:      s.Upstream.LBPolicy,
+					TryDuration: s.Upstream.LBTryDuration,
+					Interval:    s.Upstream.LBTryInterval,
+				}
+			}
+			if s.Upstream.HealthURI != "" {
+				u.ActiveHealthChecks= &olaf.ActiveHealthChecks{
+					URI:        s.Upstream.HealthURI,
+					Port:       s.Upstream.HealthPort,
+					Interval:   s.Upstream.HealthInterval,
+					Timeout:    s.Upstream.HealthTimeout,
+					StatusCode: s.Upstream.HealthStatus,
+				}
+			}
+		}
+
+		data.Services[s.Name] = &olaf.Service{
+			Name:        s.Name,
+			Upstream:    u,
+			URL:         s.URL,
+			DialTimeout: s.DialTimeout,
+			MaxRequests: s.MaxRequests,
+			HeaderUp:    s.HeaderUp,
+			HeaderDown:  s.HeaderDown,
+		}
 
 		for j, r := range s.Routes { // routes associated to a service
 			if r.Route.Name == "" {
-				r.Route.Name = fmt.Sprintf("%s_route_%d", s.Service.Name, j)
+				r.Route.Name = fmt.Sprintf("%s_route_%d", s.Name, j)
 			}
-			r.Route.ServiceName = s.Service.Name
+			r.Route.ServiceName = s.Name
 			data.Routes[r.Route.Name] = r.Route
 
 			for k, p := range r.Plugins { // plugins applied to a route
@@ -186,7 +228,7 @@ func Parse(in []byte) (*olaf.Data, error) {
 				if p.OrderAfter == "" && k > 0 {
 					p.OrderAfter = r.Plugins[k-1].Type
 				}
-				p.ServiceName = s.Service.Name
+				p.ServiceName = s.Name
 				p.RouteName = r.Route.Name
 				data.Plugins[p.Name] = p
 			}
@@ -194,12 +236,12 @@ func Parse(in []byte) (*olaf.Data, error) {
 
 		for j, p := range s.Plugins { // plugins applied to a service
 			if p.Name == "" {
-				p.Name = fmt.Sprintf("%s_plugin_%d", s.Service.Name, j)
+				p.Name = fmt.Sprintf("%s_plugin_%d", s.Name, j)
 			}
 			if p.OrderAfter == "" && j > 0 {
 				p.OrderAfter = s.Plugins[j-1].Type
 			}
-			p.ServiceName = s.Service.Name
+			p.ServiceName = s.Name
 			data.Plugins[p.Name] = p
 		}
 	}
@@ -218,8 +260,35 @@ func Parse(in []byte) (*olaf.Data, error) {
 }
 
 type (
+	upstream struct {
+		Backends    []string `yaml:"backends"`
+		MaxRequests int      `yaml:"max_requests"`
+		DialTimeout string   `yaml:"dial_timeout"`
+
+		LBPolicy      string `yaml:"lb_policy"`
+		LBTryDuration string `yaml:"lb_try_duration"`
+		LBTryInterval string `yaml:"lb_try_interval"`
+
+		HealthURI      string `yaml:"health_uri"`
+		HealthPort     int    `yaml:"health_port"`
+		HealthInterval string `yaml:"health_interval"`
+		HealthTimeout  string `yaml:"health_timeout"`
+		HealthStatus   int    `yaml:"health_status"`
+
+		HeaderUp   *olaf.HeaderOps `yaml:"header_up"`
+		HeaderDown *olaf.HeaderOps `yaml:"header_down"`
+	}
+
 	service struct {
-		*olaf.Service `yaml:",inline"`
+		Name     string    `yaml:"name"`
+		Upstream *upstream `yaml:"upstream"`
+
+		URL         string `yaml:"url"`
+		DialTimeout string `yaml:"dial_timeout"`
+		MaxRequests int    `yaml:"max_requests"`
+
+		HeaderUp   *olaf.HeaderOps `yaml:"header_up"`
+		HeaderDown *olaf.HeaderOps `yaml:"header_down"`
 
 		Routes  []*route       `yaml:"routes"`
 		Plugins []*olaf.Plugin `yaml:"plugins"`

@@ -1,7 +1,8 @@
 {
     order olaf last
+    auto_https off
 }
 
-localhost {
+example.com {
     olaf apis.yaml
 }

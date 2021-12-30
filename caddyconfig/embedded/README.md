@@ -24,13 +24,32 @@ The Service entity:
 | Attribute | Required | Description |
 | --- | --- | --- |
 | `name` | | The name of this Service. Default: `"service_<i>"` (`<i>` is the index of this service in the array). |
-| `url`	| √ | The [network address to dial](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/upstreams/dial/) to connect to this Service. |
-| `dial_timeout` | | The [duration string](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/transport/http/dial_timeout/), which indicates how long to wait before timing out trying to connect to this Service. Default: `""` (no timeout). |
-| `max_requests` | | The [maximum number of simultaneous requests](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/upstreams/max_requests/) to allow to this Service. Default: `0` (no limit). |
-| `header_up` | | Set, add or remove header fields in a request going upstream to the backend (see [docs](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/headers/request/)). Default: `{}` (no header manipulation). |
-| `header_down` | | Set, add or remove header fields in a response coming downstream from the backend (see [docs](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/headers/response/)). Default: `{}` (no header manipulation). |
+| `upstream` | √ | The Upstream associated to this Service. Similar to Kong's [Upstream Object](https://docs.konghq.com/gateway-oss/2.2.x/admin-api/#upstream-object). |
+| `url`	| DEPRECATED | The [network address to dial](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/upstreams/dial/) to connect to this Service. |
+| `dial_timeout` | DEPRECATED | The [duration string](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/transport/http/dial_timeout/), which indicates how long to wait before timing out trying to connect to this Service. Default: `""` (no timeout). |
+| `max_requests` | DEPRECATED | The [maximum number of simultaneous requests](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/upstreams/max_requests/) to allow to this Service. Default: `0` (no limit). |
+| `header_up` | DEPRECATED | Set, add or remove header fields in a request going upstream to the backend (see [docs](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/headers/request/)). Default: `{}` (no header manipulation). |
+| `header_down` | DEPRECATED | Set, add or remove header fields in a response coming downstream from the backend (see [docs](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/headers/response/)). Default: `{}` (no header manipulation). |
 | `routes` | √ | A list of Routes associated to this Service. Similar to Kong's [Route Object](https://docs.konghq.com/2.2.x/admin-api/#route-object). |
 | `plugins` | | A list of Plugins applied to this Service. Default: `[]`. Similar to Kong's [Plugin Object](https://docs.konghq.com/2.2.x/admin-api/#plugin-object). |
+
+The Upstream entity:
+
+| Attribute | Required | Description |
+| --- | --- | --- |
+| `backends` | √ | See descriptions of [reverse_proxy.upstreams](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#upstreams). |
+| `max_requests` | | See descriptions of [reverse_proxy.lb_policy](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#lb_policy). |
+| `dial_timeout` | | The [duration string](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/transport/http/dial_timeout/), which indicates how long to wait before timing out trying to connect to this Service. Default: `""` (no timeout). |
+| `lb_policy` | | See descriptions of [reverse_proxy.lb_policy](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#lb_policy). |
+| `lb_try_duration` | | See descriptions of [reverse_proxy.lb_try_duration](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#lb_try_duration). |
+| `lb_try_interval` | | See descriptions of [reverse_proxy.lb_try_interval](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#lb_try_interval). |
+| `health_uri` | | See descriptions of [reverse_proxy.health_uri](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#health_uri). |
+| `health_port` | | See descriptions of [reverse_proxy.health_port](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#health_port). |
+| `health_interval` | | See descriptions of [reverse_proxy.health_interval](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#health_interval). |
+| `health_timeout` | | See descriptions of [reverse_proxy.health_timeout](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#health_timeout). |
+| `health_status` | | See descriptions of [reverse_proxy.health_status](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#health_status). |
+| `header_up` | | Set, add or remove header fields in a request going upstream to the backend (see [docs](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/headers/request/)). Default: `{}` (no header manipulation). |
+| `header_down` | | Set, add or remove header fields in a response coming downstream from the backend (see [docs](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/headers/response/)). Default: `{}` (no header manipulation). |
 
 The Route entity:
 
@@ -97,7 +116,7 @@ See [apis.yaml](apis.yaml).
     order olaf last
 }
 
-localhost {
+example.com {
     olaf apis.yaml
 }
 ```
@@ -109,7 +128,7 @@ localhost {
     order olaf last
 }
 
-localhost {
+example.com {
     route /* {
         file_server
     }
