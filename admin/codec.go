@@ -3,7 +3,7 @@ package admin
 import (
 	"net/http"
 
-	"github.com/RussellLuo/kok/pkg/codec/httpcodec"
+	"github.com/RussellLuo/kun/pkg/httpcodec"
 	"github.com/RussellLuo/olaf"
 )
 

@@ -3,14 +3,14 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
-	"time"
+	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/RussellLuo/appx"
-	"github.com/RussellLuo/kok/pkg/oasv2"
 	"github.com/RussellLuo/olaf/admin"
-	"github.com/RussellLuo/olaf/caddyconfig/reloader"
 	"github.com/RussellLuo/olaf/store/yaml"
 )
 
@@ -21,61 +21,28 @@ var (
 
 func main() {
 	flag.StringVar(&httpAddr, "addr", ":2020", "HTTP listen address")
-	flag.StringVar(&configFile, "config", "./olaf.json", "Olaf config file")
+	flag.StringVar(&configFile, "config", "./apis.yaml", "Olaf config file")
 	flag.Parse()
 
 	store := yaml.New(configFile)
-
-	appx.MustRegister(
-		appx.New("Admin-server").InitFunc(func(ctx appx.Context) error {
-			server := &http.Server{
-				Addr: httpAddr,
-				Handler: admin.NewHTTPRouterWithOAS(
-					store,
-					admin.NewCodecs(),
-					&oasv2.ResponseSchema{},
-				),
-			}
-			ctx.Lifecycle.Append(appx.Hook{
-				OnStart: func(context.Context) error {
-					go server.ListenAndServe() // nolint:errcheck
-					log.Printf("transport=HTTP addr=%s\n", httpAddr)
-					return nil
-				},
-				OnStop: func(ctx context.Context) error {
-					return server.Shutdown(ctx)
-				},
-			})
-			return nil
-		}),
-	)
-
-	appx.MustRegister(
-		appx.New("Caddy-reloader").InitFunc(func(ctx appx.Context) error {
-			c := reloader.New(store, 5*time.Second)
-			ctx.Lifecycle.Append(appx.Hook{
-				OnStart: func(context.Context) error {
-					go c.Start()
-					return nil
-				},
-				OnStop: func(context.Context) error {
-					c.Stop()
-					return nil
-				},
-			})
-			return nil
-		}),
-	)
-
-	if err := appx.Install(context.Background()); err != nil {
-		log.Printf("err: %v\n", err)
-		return
+	server := &http.Server{
+		Addr:    httpAddr,
+		Handler: admin.NewHTTPRouter(store, admin.NewCodecs()),
 	}
-	defer appx.Uninstall()
 
-	sig, err := appx.Run()
-	if err != nil {
-		log.Printf("err: %v\n", err)
-	}
-	log.Printf("terminated, err:%v", sig)
+	errs := make(chan error, 2)
+	go func() {
+		log.Printf("transport=HTTP addr=%s\n", httpAddr)
+		errs <- server.ListenAndServe()
+	}()
+	go func() {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+		sig := <-c
+
+		server.Shutdown(context.Background()) // nolint:errcheck
+		errs <- fmt.Errorf("%s", sig)
+	}()
+
+	log.Printf("terminated, err:%v", <-errs)
 }

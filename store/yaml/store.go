@@ -65,14 +65,6 @@ func (s *Store) Load(t time.Time) (*olaf.Data, error) {
 	return data, nil
 }
 
-func (s *Store) UpdateServer(ctx context.Context, server *olaf.Server) (err error) {
-	return olaf.ErrMethodNotImplemented
-}
-
-func (s *Store) GetServer(ctx context.Context) (server *olaf.Server, err error) {
-	return s.data.Server, nil
-}
-
 func (s *Store) CreateService(ctx context.Context, svc *olaf.Service) (err error) {
 	return olaf.ErrMethodNotImplemented
 }
@@ -84,70 +76,122 @@ func (s *Store) ListServices(ctx context.Context) (services []*olaf.Service, err
 	return
 }
 
-func (s *Store) GetService(ctx context.Context, name string) (service *olaf.Service, err error) {
-	svc, ok := s.data.Services[name]
+func (s *Store) GetService(ctx context.Context, serviceName, routeName string) (*olaf.Service, error) {
+	if routeName != "" {
+		r, ok := s.data.Routes[routeName]
+		if !ok {
+			return nil, olaf.ErrServiceNotFound
+		}
+		// Overwrite serviceName since it must be empty if routeName is specified.
+		serviceName = r.ServiceName
+	}
+
+	svc, ok := s.data.Services[serviceName]
 	if !ok {
-		err = olaf.ErrServiceNotFound
-		return
+		return nil, olaf.ErrServiceNotFound
 	}
 	return svc, nil
 }
 
-func (s *Store) UpdateService(ctx context.Context, name string, svc *olaf.Service) (err error) {
+func (s *Store) UpdateService(ctx context.Context, serviceName, routeName string, svc *olaf.Service) (err error) {
 	return olaf.ErrMethodNotImplemented
 }
 
-func (s *Store) DeleteService(ctx context.Context, name string) (err error) {
+func (s *Store) DeleteService(ctx context.Context, serviceName, routeName string) (err error) {
 	return olaf.ErrMethodNotImplemented
 }
 
-func (s *Store) CreateRoute(ctx context.Context, route *olaf.Route) (err error) {
+func (s *Store) CreateRoute(ctx context.Context, serviceName string, route *olaf.Route) (err error) {
 	return olaf.ErrMethodNotImplemented
 }
 
-func (s *Store) ListRoutes(ctx context.Context) (routes []*olaf.Route, err error) {
+func (s *Store) ListRoutes(ctx context.Context, serviceName string) (routes []*olaf.Route, err error) {
 	for _, r := range s.data.Routes {
-		routes = append(routes, r)
+		if serviceName != "" {
+			if r.ServiceName == serviceName {
+				routes = append(routes, r)
+			}
+		} else {
+			routes = append(routes, r)
+		}
 	}
 	return
 }
 
-func (s *Store) GetRoute(ctx context.Context, name string) (route *olaf.Route, err error) {
-	route, ok := s.data.Routes[name]
-	if !ok {
+func (s *Store) GetRoute(ctx context.Context, serviceName, routeName string) (route *olaf.Route, err error) {
+	route, ok := s.data.Routes[routeName]
+	if !ok || (serviceName != "" && route.ServiceName != serviceName) {
 		return nil, olaf.ErrRouteNotFound
 	}
 	return route, nil
 }
 
-func (s *Store) UpdateRoute(ctx context.Context, name string, route *olaf.Route) (err error) {
+func (s *Store) UpdateRoute(ctx context.Context, serviceName, routeName string, route *olaf.Route) (err error) {
 	return olaf.ErrMethodNotImplemented
 }
 
-func (s *Store) DeleteRoute(ctx context.Context, name string) (err error) {
+func (s *Store) DeleteRoute(ctx context.Context, serviceName, routeName string) (err error) {
 	return olaf.ErrMethodNotImplemented
 }
 
-func (s *Store) CreatePlugin(ctx context.Context, p *olaf.Plugin) (plugin *olaf.Plugin, err error) {
+func (s *Store) CreatePlugin(ctx context.Context, serviceName, routeName string, p *olaf.Plugin) (plugin *olaf.Plugin, err error) {
 	return nil, olaf.ErrMethodNotImplemented
 }
 
-func (s *Store) ListPlugins(ctx context.Context) (plugins []*olaf.Plugin, err error) {
+func (s *Store) ListPlugins(ctx context.Context, serviceName, routeName string) (plugins []*olaf.Plugin, err error) {
 	for _, p := range s.data.Plugins {
-		plugins = append(plugins, p)
+		switch {
+		case serviceName != "":
+			if p.ServiceName == serviceName {
+				plugins = append(plugins, p)
+			}
+		case routeName != "":
+			if p.RouteName == routeName {
+				plugins = append(plugins, p)
+			}
+		default:
+			plugins = append(plugins, p)
+		}
 	}
 	return
 }
 
-func (s *Store) GetPlugin(ctx context.Context, name string) (plugin *olaf.Plugin, err error) {
-	plugin, ok := s.data.Plugins[name]
-	if !ok {
+func (s *Store) GetPlugin(ctx context.Context, serviceName, routeName, pluginName string) (plugin *olaf.Plugin, err error) {
+	plugin, ok := s.data.Plugins[pluginName]
+	if !ok || (serviceName != "" && plugin.ServiceName != serviceName) || (routeName != "" && plugin.RouteName != routeName) {
 		return nil, olaf.ErrPluginNotFound
 	}
 	return plugin, nil
 }
 
-func (s *Store) DeletePlugin(ctx context.Context, name string) (err error) {
+func (s *Store) UpdatePlugin(ctx context.Context, serviceName, routeName, pluginName string, plugin *olaf.Plugin) (err error) {
+	return olaf.ErrMethodNotImplemented
+}
+
+func (s *Store) DeletePlugin(ctx context.Context, serviceName, routeName, pluginName string) (err error) {
+	return olaf.ErrMethodNotImplemented
+}
+
+func (s *Store) ListUpstreams(ctx context.Context) (upstreams []*olaf.Upstream, err error) {
+	for _, svc := range s.data.Services {
+		upstreams = append(upstreams, svc.Upstream)
+	}
+	return
+}
+
+func (s *Store) GetUpstream(ctx context.Context, upstreamName, serviceName string) (upstream *olaf.Upstream, err error) {
+	if upstreamName != "" {
+		return nil, olaf.ErrMethodNotImplemented
+	}
+
+	svc, ok := s.data.Services[serviceName]
+	if !ok {
+		return nil, olaf.ErrUpstreamNotFound
+	}
+	return svc.Upstream, nil
+}
+
+func (s *Store) UpdateUpstream(ctx context.Context, upstreamName, serviceName string, upstream *olaf.Upstream) (err error) {
 	return olaf.ErrMethodNotImplemented
 }
 
@@ -181,20 +225,20 @@ func Parse(in []byte) (*olaf.Data, error) {
 				})
 			}
 			u = &olaf.Upstream{
-				Backends: backends,
-				HTTP:     &olaf.TransportHTTP{DialTimeout: s.Upstream.DialTimeout},
+				Backends:   backends,
+				HTTP:       &olaf.TransportHTTP{DialTimeout: s.Upstream.DialTimeout},
 				HeaderUp:   s.Upstream.HeaderUp,
 				HeaderDown: s.Upstream.HeaderDown,
 			}
 			if s.Upstream.LBPolicy != "" || s.Upstream.LBTryDuration != "" || s.Upstream.LBTryInterval != "" {
-				u.LoadBalancing= &olaf.LoadBalancing{
+				u.LoadBalancing = &olaf.LoadBalancing{
 					Policy:      s.Upstream.LBPolicy,
 					TryDuration: s.Upstream.LBTryDuration,
 					Interval:    s.Upstream.LBTryInterval,
 				}
 			}
 			if s.Upstream.HealthURI != "" {
-				u.ActiveHealthChecks= &olaf.ActiveHealthChecks{
+				u.ActiveHealthChecks = &olaf.ActiveHealthChecks{
 					URI:        s.Upstream.HealthURI,
 					Port:       s.Upstream.HealthPort,
 					Interval:   s.Upstream.HealthInterval,

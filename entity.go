@@ -14,6 +14,8 @@ var (
 	ErrPluginExists   = errors.New("plugin already exists")
 	ErrPluginNotFound = errors.New("plugin not found")
 
+	ErrUpstreamNotFound = errors.New("upstream not found")
+
 	ErrMethodNotImplemented = errors.New("method not implemented")
 
 	// A special error indicates that the data has not been modified
