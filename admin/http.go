@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/RussellLuo/kun/pkg/httpcodec"
-	httpoption "github.com/RussellLuo/kun/pkg/httpoption2"
+	"github.com/RussellLuo/kun/pkg/httpoption"
 	"github.com/RussellLuo/kun/pkg/oas2"
 	"github.com/go-chi/chi"
 	kithttp "github.com/go-kit/kit/transport/http"
@@ -200,6 +200,20 @@ func NewHTTPRouter(svc Admin, codecs httpcodec.Codecs, opts ...httpoption.Option
 			MakeEndpointOfDeleteService(svc),
 			decodeDeleteService1Request(codec, validator),
 			httpcodec.MakeResponseEncoder(codec, 204),
+			append(kitOptions,
+				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
+			)...,
+		),
+	)
+
+	codec = codecs.EncodeDecoder("GetConfig")
+	validator = options.RequestValidator("GetConfig")
+	r.Method(
+		"GET", "/config",
+		kithttp.NewServer(
+			MakeEndpointOfGetConfig(svc),
+			decodeGetConfigRequest(codec, validator),
+			httpcodec.MakeResponseEncoder(codec, 200),
 			append(kitOptions,
 				kithttp.ServerErrorEncoder(httpcodec.MakeErrorEncoder(codec)),
 			)...,
@@ -559,10 +573,6 @@ func NewHTTPRouter(svc Admin, codecs httpcodec.Codecs, opts ...httpoption.Option
 	return r
 }
 
-func NewHTTPRouterWithOAS(svc Admin, codecs httpcodec.Codecs, schema oas2.Schema) chi.Router {
-	return NewHTTPRouter(svc, codecs, httpoption.ResponseSchema(schema))
-}
-
 func decodeCreatePluginRequest(codec httpcodec.Codec, validator httpoption.Validator) kithttp.DecodeRequestFunc {
 	return func(_ context.Context, r *http.Request) (interface{}, error) {
 		var _req CreatePluginRequest
@@ -805,6 +815,12 @@ func decodeDeleteService1Request(codec httpcodec.Codec, validator httpoption.Val
 		}
 
 		return &_req, nil
+	}
+}
+
+func decodeGetConfigRequest(codec httpcodec.Codec, validator httpoption.Validator) kithttp.DecodeRequestFunc {
+	return func(_ context.Context, r *http.Request) (interface{}, error) {
+		return nil, nil
 	}
 }
 

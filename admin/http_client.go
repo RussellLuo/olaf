@@ -275,6 +275,44 @@ func (c *HTTPClient) DeleteService(ctx context.Context, serviceName string, rout
 	return nil
 }
 
+func (c *HTTPClient) GetConfig(ctx context.Context) (data *olaf.Data, err error) {
+	codec := c.codecs.EncodeDecoder("GetConfig")
+
+	path := "/config"
+	u := &url.URL{
+		Scheme: c.scheme,
+		Host:   c.host,
+		Path:   c.pathPrefix + path,
+	}
+
+	_req, err := http.NewRequest("GET", u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	_resp, err := c.httpClient.Do(_req)
+	if err != nil {
+		return nil, err
+	}
+	defer _resp.Body.Close()
+
+	if _resp.StatusCode < http.StatusOK || _resp.StatusCode > http.StatusNoContent {
+		var respErr error
+		err := codec.DecodeFailureResponse(_resp.Body, &respErr)
+		if err == nil {
+			err = respErr
+		}
+		return nil, err
+	}
+
+	respBody := &GetConfigResponse{}
+	err = codec.DecodeSuccessResponse(_resp.Body, respBody.Body())
+	if err != nil {
+		return nil, err
+	}
+	return respBody.Data, nil
+}
+
 func (c *HTTPClient) GetPlugin(ctx context.Context, serviceName string, routeName string, pluginName string) (plugin *olaf.Plugin, err error) {
 	codec := c.codecs.EncodeDecoder("GetPlugin")
 

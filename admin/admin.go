@@ -9,6 +9,10 @@ import (
 //go:generate kungen ./admin.go Admin
 
 type Admin interface {
+	//kun:op GET /config
+	//kun:success body=data
+	GetConfig(ctx context.Context) (data *olaf.Data, err error)
+
 	//kun:op POST /services
 	//kun:body svc
 	CreateService(ctx context.Context, svc *olaf.Service) (err error)

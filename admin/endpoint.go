@@ -6,7 +6,7 @@ package admin
 import (
 	"context"
 
-	httpoption "github.com/RussellLuo/kun/pkg/httpoption2"
+	"github.com/RussellLuo/kun/pkg/httpoption"
 	"github.com/RussellLuo/olaf"
 	"github.com/RussellLuo/validating/v2"
 	"github.com/go-kit/kit/endpoint"
@@ -234,6 +234,29 @@ func MakeEndpointOfDeleteService(s Admin) endpoint.Endpoint {
 		)
 		return &DeleteServiceResponse{
 			Err: err,
+		}, nil
+	}
+}
+
+type GetConfigResponse struct {
+	Data *olaf.Data `json:"data"`
+	Err  error      `json:"-"`
+}
+
+func (r *GetConfigResponse) Body() interface{} { return r.Data }
+
+// Failed implements endpoint.Failer.
+func (r *GetConfigResponse) Failed() error { return r.Err }
+
+// MakeEndpointOfGetConfig creates the endpoint for s.GetConfig.
+func MakeEndpointOfGetConfig(s Admin) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		data, err := s.GetConfig(
+			ctx,
+		)
+		return &GetConfigResponse{
+			Data: data,
+			Err:  err,
 		}, nil
 	}
 }

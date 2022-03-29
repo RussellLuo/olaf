@@ -5,12 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
-	"time"
-
-	"gopkg.in/yaml.v3"
 
 	"github.com/RussellLuo/olaf"
+	"gopkg.in/yaml.v3"
 )
 
 type Store struct {
@@ -20,18 +17,11 @@ type Store struct {
 }
 
 func New(filename string) *Store {
-	s := &Store{
-		data: &olaf.Data{
-			Services: make(map[string]*olaf.Service),
-			Routes:   make(map[string]*olaf.Route),
-			Plugins:  make(map[string]*olaf.Plugin),
-		},
-		filename: filename,
-	}
+	s := &Store{filename: filename}
 
-	data, err := s.Load(time.Time{})
+	data, err := s.GetConfig(context.Background())
 	if err != nil {
-		log.Printf("Loading err: %v\n", err)
+		log.Printf("failed to get config: %v\n", err)
 		return s
 	}
 
@@ -39,25 +29,13 @@ func New(filename string) *Store {
 	return s
 }
 
-func (s *Store) Load(t time.Time) (*olaf.Data, error) {
-	f, err := os.Stat(s.filename)
+func (s *Store) GetConfig(ctx context.Context) (*olaf.Data, error) {
+	c, err := ioutil.ReadFile(s.filename)
 	if err != nil {
 		return nil, err
 	}
 
-	if !t.IsZero() && !f.ModTime().After(t) {
-		// Not modified, no need to load.
-		return nil, olaf.ErrDataUnmodified
-	}
-
-	log.Printf("Loading data from file %s", s.filename)
-
-	content, err := ioutil.ReadFile(s.filename)
-	if err != nil {
-		return nil, err
-	}
-
-	data, err := Parse(content)
+	data, err := Parse(c)
 	if err != nil {
 		return nil, err
 	}

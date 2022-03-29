@@ -436,6 +436,11 @@ paths:
           schema:
             $ref: "#/definitions/UpdateServiceRequestBody"
       %s
+  /config:
+    get:
+      description: ""
+      operationId: "GetConfig"
+      %s
   /upstreams/{upstreamName}:
     get:
       description: ""
@@ -529,6 +534,7 @@ func getResponses(schema oas2.Schema) []oas2.OASResponses {
 		oas2.GetOASResponses(schema, "DeleteService", 204, &DeleteServiceResponse{}),
 		oas2.GetOASResponses(schema, "GetService", 200, &GetServiceResponse{}),
 		oas2.GetOASResponses(schema, "UpdateService", 200, &UpdateServiceResponse{}),
+		oas2.GetOASResponses(schema, "GetConfig", 200, &GetConfigResponse{}),
 		oas2.GetOASResponses(schema, "GetUpstream", 200, &GetUpstreamResponse{}),
 		oas2.GetOASResponses(schema, "UpdateUpstream", 200, &UpdateUpstreamResponse{}),
 		oas2.GetOASResponses(schema, "GetUpstream", 200, &GetUpstreamResponse{}),
@@ -571,6 +577,8 @@ func getDefinitions(schema oas2.Schema) map[string]oas2.Definition {
 	oas2.AddResponseDefinitions(defs, schema, "DeleteService", 204, (&DeleteServiceResponse{}).Body())
 
 	oas2.AddResponseDefinitions(defs, schema, "DeleteService", 204, (&DeleteServiceResponse{}).Body())
+
+	oas2.AddResponseDefinitions(defs, schema, "GetConfig", 200, (&GetConfigResponse{}).Body())
 
 	oas2.AddResponseDefinitions(defs, schema, "GetPlugin", 200, (&GetPluginResponse{}).Body())
 
