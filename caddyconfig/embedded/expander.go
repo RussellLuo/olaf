@@ -140,6 +140,7 @@ func (l defaultLoader) Load(mod *caddymodule.Olaf) (*olaf.Data, error) {
 			return nil, fmt.Errorf("code: %d, err: %s", resp.StatusCode, msg)
 		}
 
+		data = new(olaf.Data)
 		if err := json.NewDecoder(resp.Body).Decode(data); err != nil {
 			return nil, err
 		}
