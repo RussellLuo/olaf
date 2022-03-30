@@ -1,0 +1,41 @@
+{
+  "apps": {
+    "http": {
+      "servers": {
+        "srv0": {
+          "routes": [
+            {
+              "handle": [
+                {
+                  "handler": "subroute",
+                  "routes": [
+                    {
+                      "handle": [
+                        {
+                          "handler": "olaf",
+                          "type": "file",
+                          "path": "./testdata/apis.yaml"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "match": [
+                {
+                  "host": [
+                    "example.com"
+                  ]
+                }
+              ],
+              "terminal": true
+            }
+          ],
+          "listen": [
+            ":443"
+          ]
+        }
+      }
+    }
+  }
+}

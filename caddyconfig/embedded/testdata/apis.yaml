@@ -1,0 +1,9 @@
+services:
+- name: static
+  routes:
+  - methods:
+    - GET
+    paths:
+    - /health-check
+    response:
+      status_code: 200

@@ -2,12 +2,7 @@ package adapter
 
 import (
 	"encoding/json"
-	"io/ioutil"
-
-	"github.com/RussellLuo/olaf/caddyconfig/builder"
-	"github.com/RussellLuo/olaf/store/yaml"
 	"github.com/caddyserver/caddy/v2/caddyconfig"
-	"github.com/mitchellh/mapstructure"
 )
 
 func init() {
@@ -23,10 +18,10 @@ type Apps struct {
 	} `json:"http"`
 }
 
-// Adapter adapts Olaf's YAML config to Caddy JSON.
+// Adapter adapts Olaf's configuration to Caddy JSON.
 type Adapter struct{}
 
-// Adapt converts the Olaf's YAML config in body to Caddy JSON.
+// Adapt converts the Olaf's configuration in body to Caddy JSON.
 func (Adapter) Adapt(body []byte, options map[string]interface{}) ([]byte, []caddyconfig.Warning, error) {
 	caddyfileAdapter := caddyconfig.GetAdapter("caddyfile")
 	caddyfileResult, warn, err := caddyfileAdapter.Adapt(body, options)
@@ -48,15 +43,9 @@ func patch(caddyfileResult []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	apps := new(Apps)
-	if err := mapstructure.Decode(config["apps"], apps); err != nil {
+	expander := NewExpander(nil)
+	if err := expander.Expand(config); err != nil {
 		return nil, err
-	}
-
-	for _, server := range apps.HTTP.Servers {
-		if err := expandOlaf(server.Routes); err != nil {
-			return nil, err
-		}
 	}
 
 	result, err := json.Marshal(config)
@@ -65,57 +54,4 @@ func patch(caddyfileResult []byte) ([]byte, error) {
 	}
 
 	return result, nil
-}
-
-// expandOlaf replaces the original `olaf` handler with a `subroute` handler,
-// whose routes are built by parsing the Olaf's declarative configuration in YAML.
-func expandOlaf(routes []map[string]interface{}) error {
-NextRoute:
-	for _, r := range routes {
-		handle := r["handle"].([]interface{})
-		for _, h := range handle {
-			h := h.(map[string]interface{})
-
-			switch h["handler"] {
-			case "olaf":
-				filename := h["filename"].(string)
-				olafRoutes, err := buildOlafRoutes(filename)
-				if err != nil {
-					return err
-				}
-
-				// Replace the `olaf` handler with a `subroute` handler.
-				delete(h, "filename")
-				h["handler"] = "subroute"
-				h["routes"] = olafRoutes
-
-				// We assume that there is only one `olaf` handler in the list.
-				continue NextRoute
-
-			case "subroute":
-				var subRoutes []map[string]interface{}
-				if err := mapstructure.Decode(h["routes"], &subRoutes); err != nil {
-					return err
-				}
-				if err := expandOlaf(subRoutes); err != nil {
-					return err
-				}
-			}
-		}
-	}
-	return nil
-}
-
-func buildOlafRoutes(filename string) ([]map[string]interface{}, error) {
-	content, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	data, err := yaml.Parse(content)
-	if err != nil {
-		return nil, err
-	}
-
-	return builder.BuildRoutes(data), nil
 }

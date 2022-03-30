@@ -1,0 +1,68 @@
+{
+  "apps": {
+    "http": {
+      "servers": {
+        "srv0": {
+          "routes": [
+            {
+              "handle": [
+                {
+                  "handler": "subroute",
+                  "routes": [
+                    {
+                      "handle": [
+                        {
+                          "handler": "subroute",
+                          "routes": [
+                            {
+                              "handle": [
+                                {
+                                  "handler": "subroute",
+                                  "routes": [
+                                    {
+                                      "handle": [
+                                        {
+                                          "handler": "static_response",
+                                          "status_code": 200
+                                        }
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ],
+                              "match": [
+                                {
+                                  "method": [
+                                    "GET"
+                                  ],
+                                  "path": [
+                                    "/health-check"
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              "match": [
+                {
+                  "host": [
+                    "example.com"
+                  ]
+                }
+              ],
+              "terminal": true
+            }
+          ],
+          "listen": [
+            ":443"
+          ]
+        }
+      }
+    }
+  }
+}
