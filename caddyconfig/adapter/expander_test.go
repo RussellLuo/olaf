@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	adapter "github.com/RussellLuo/olaf/caddyconfig/embedded"
+	"github.com/RussellLuo/olaf/caddyconfig/adapter"
 )
 
 func TestExpander_Expand(t *testing.T) {

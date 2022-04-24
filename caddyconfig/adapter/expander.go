@@ -14,6 +14,15 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
+type Apps struct {
+	HTTP struct {
+		Servers map[string]struct {
+			Listen []string                 `json:"listen"`
+			Routes []map[string]interface{} `json:"routes"`
+		} `json:"servers"`
+	} `json:"http"`
+}
+
 type Loader interface {
 	Load(mod *caddymodule.Olaf) (*olaf.Data, error)
 }
@@ -71,7 +80,7 @@ NextRoute:
 				delete(h, "path")
 				delete(h, "timeout")
 				h["handler"] = "subroute"
-				h["routes"] = builder.BuildRoutes(data)
+				h["routes"] = builder.Build(data)
 
 				// We assume that there is only one `olaf` handler in the list.
 				continue NextRoute

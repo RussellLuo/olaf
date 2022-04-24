@@ -11,10 +11,6 @@ Olaf is a Configuration Manager for [Caddy](https://caddyserver.com/).
 
 See [Olaf's Declarative Configuration](caddyconfig/adapter).
 
-### Config Reloader
-
-Apply the updated configuration to Caddy automatically.
-
 ### Admin API
 
 An internal RESTful Admin API for administration purposes. Similar to Kong's [Admin API](https://docs.konghq.com/2.2.x/admin-api/).

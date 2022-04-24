@@ -16,71 +16,40 @@ The top-level entries:
 
 | Entry | Required | Description |
 | --- | --- | --- |
-| `server` | | The Server options. |
 | `services` | √ | A list of Services. Similar to Kong's [Service Object](https://docs.konghq.com/2.2.x/admin-api/#service-object). |
 | `plugins` | | A list of global Plugins. Default: `[]`. Similar to Kong's [Plugin Object](https://docs.konghq.com/2.2.x/admin-api/#plugin-object). |
-
-The Server entity:
-
-| Attribute | Required | Description |
-| --- | --- | --- |
-| `listen` | | [Network addresses](https://caddyserver.com/docs/json/apps/http/servers/listen/) to which to bind listeners. Default: `[":6060"]`. |
-| `http_port` | | The port to use for [HTTP](https://caddyserver.com/docs/json/apps/http/http_port/). Default: `80`. |
-| `https_port` | | The port to use for [HTTPS](https://caddyserver.com/docs/json/apps/http/https_port/). Default: `443`. |
-| `enable_auto_https` | | Whether to enable [automatic HTTPS](https://caddyserver.com/docs/json/apps/http/servers/automatic_https/), Default: `false`. |
-| `enable_debug` | | Whether to enable debug mode, which sets all log levels to DEBUG (use only for debugging). Default: `false`. |
-| `default_log` | | The config of Caddy's DefaultLog. |
-| `access_log` | | The config of Caddy's AccessLog. |
-| `admin` | | The config of Caddy's admin endpoint, which is used to manage Caddy while it is running. |
-
-The [DefaultLog](https://caddyserver.com/docs/json/logging/#docs) entity:
-
-| Attribute | Required | Description |
-| --- | --- | --- |
-| `output` | | The config of the LogOutput. |
-| `level` | | The minimum entry level to log. Default: `"INFO"`. |
-
-The [AccessLog](https://caddyserver.com/docs/caddyfile/directives/log) entity:
-
-| Attribute | Required | Description |
-| --- | --- | --- |
-| `disabled` | | Whether to disable this AccessLog. Default: `false`. |
-| `output` | | The config of the LogOutput. |
-| `level` | | The minimum entry level to log. Default: `"INFO"`. |
-
-The [LogOutput](https://caddyserver.com/docs/caddyfile/directives/log#output-modules) entity:
-
-| Attribute | Required | Description |
-| --- | --- | --- |
-| `output` | | Where to write the logs. Default: `"stderr"` for DefaultLog, or `"stdout"` for AccessLog. |
-| `filename` | | The path to the log file if `output` is `"file"`. Default: `""`. |
-| `roll_disabled` | | Whether to disable log rolling. Default: `false`. |
-| `roll_size_mb` | | The size (in megabytes) at which to roll the log file. Default: `100`. |
-| `roll_keep` | | How many log files to keep before deleting the oldest ones. Default: `10`. |
-| `roll_keep_days` | | How long (in days) to keep rolled files. Default: `90`. |
-
-The [Admin](https://caddyserver.com/docs/json/admin/) entity:
-
-| Attribute | Required | Description |
-| --- | --- | --- |
-| `disabled` | | Whether to disable the admin endpoint completely. Default: `false`. |
-| `listen` | | The address to which the admin endpoint's listener should bind itself. Default: `"localhost:2019"`. |
-| `enforce_origin` | | See [docs](https://caddyserver.com/docs/json/admin/enforce_origin/). |
-| `origins` | | See [docs](https://caddyserver.com/docs/json/admin/origins/). |
-| `nonpersistent` | | Whether to keep a copy of the active config on disk. Default: `false` (keep a copy). |
 
 The Service entity:
 
 | Attribute | Required | Description |
 | --- | --- | --- |
 | `name` | | The name of this Service. Default: `"service_<i>"` (`<i>` is the index of this service in the array). |
-| `url`	| √ | The [network address to dial](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/upstreams/dial/) to connect to this Service. |
-| `dial_timeout` | | The [duration string](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/transport/http/dial_timeout/), which indicates how long to wait before timing out trying to connect to this Service. Default: `""` (no timeout). |
-| `max_requests` | | The [maximum number of simultaneous requests](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/upstreams/max_requests/) to allow to this Service. Default: `0` (no limit). |
-| `header_up` | | Set, add or remove header fields in a request going upstream to the backend (see [docs](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/headers/request/)). Default: `{}` (no header manipulation). |
-| `header_down` | | Set, add or remove header fields in a response coming downstream from the backend (see [docs](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/headers/response/)). Default: `{}` (no header manipulation). |
+| `upstream` | √ | The Upstream associated to this Service. Similar to Kong's [Upstream Object](https://docs.konghq.com/gateway-oss/2.2.x/admin-api/#upstream-object). |
+| `url`	| DEPRECATED | The [network address to dial](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/upstreams/dial/) to connect to this Service. |
+| `dial_timeout` | DEPRECATED | The [duration string](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/transport/http/dial_timeout/), which indicates how long to wait before timing out trying to connect to this Service. Default: `""` (no timeout). |
+| `max_requests` | DEPRECATED | The [maximum number of simultaneous requests](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/upstreams/max_requests/) to allow to this Service. Default: `0` (no limit). |
+| `header_up` | DEPRECATED | Set, add or remove header fields in a request going upstream to the backend (see [docs](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/headers/request/)). Default: `{}` (no header manipulation). |
+| `header_down` | DEPRECATED | Set, add or remove header fields in a response coming downstream from the backend (see [docs](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/headers/response/)). Default: `{}` (no header manipulation). |
 | `routes` | √ | A list of Routes associated to this Service. Similar to Kong's [Route Object](https://docs.konghq.com/2.2.x/admin-api/#route-object). |
 | `plugins` | | A list of Plugins applied to this Service. Default: `[]`. Similar to Kong's [Plugin Object](https://docs.konghq.com/2.2.x/admin-api/#plugin-object). |
+
+The Upstream entity:
+
+| Attribute | Required | Description |
+| --- | --- | --- |
+| `backends` | √ | See descriptions of [reverse_proxy.upstreams](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#upstreams). |
+| `max_requests` | | See descriptions of [reverse_proxy.lb_policy](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#lb_policy). |
+| `dial_timeout` | | The [duration string](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/transport/http/dial_timeout/), which indicates how long to wait before timing out trying to connect to this Service. Default: `""` (no timeout). |
+| `lb_policy` | | See descriptions of [reverse_proxy.lb_policy](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#lb_policy). |
+| `lb_try_duration` | | See descriptions of [reverse_proxy.lb_try_duration](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#lb_try_duration). |
+| `lb_try_interval` | | See descriptions of [reverse_proxy.lb_try_interval](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#lb_try_interval). |
+| `health_uri` | | See descriptions of [reverse_proxy.health_uri](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#health_uri). |
+| `health_port` | | See descriptions of [reverse_proxy.health_port](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#health_port). |
+| `health_interval` | | See descriptions of [reverse_proxy.health_interval](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#health_interval). |
+| `health_timeout` | | See descriptions of [reverse_proxy.health_timeout](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#health_timeout). |
+| `health_status` | | See descriptions of [reverse_proxy.health_status](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy#health_status). |
+| `header_up` | | Set, add or remove header fields in a request going upstream to the backend (see [docs](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/headers/request/)). Default: `{}` (no header manipulation). |
+| `header_down` | | Set, add or remove header fields in a response coming downstream from the backend (see [docs](https://caddyserver.com/docs/json/apps/http/servers/routes/handle/reverse_proxy/headers/response/)). Default: `{}` (no header manipulation). |
 
 The Route entity:
 
@@ -135,8 +104,41 @@ The Config of the Canary Plugin:
 
 ### Example
 
-See [olaf.yaml](olaf.yaml).
+See [apis.yaml](apis.yaml).
 
+
+## Embedding Olaf in Caddyfile
+
+### Serving your APIs
+
+```
+{
+    order olaf last
+}
+
+example.com {
+    olaf apis.yaml
+}
+```
+
+### Serving both a website and your APIs
+
+```
+{
+    order olaf last
+}
+
+example.com {
+    route /* {
+        file_server
+    }
+
+    route /api/* {
+        uri strip_prefix /api
+        olaf apis.yaml
+    }
+}
+```
 
 ## Usage
 
@@ -153,6 +155,7 @@ Build Caddy:
 ```bash
 $ xcaddy build \
     --with github.com/RussellLuo/olaf/caddyconfig/adapter \
+    --with github.com/RussellLuo/olaf/caddymodule \
     --with github.com/RussellLuo/caddy-ext/requestbodyvar \
     --with github.com/RussellLuo/caddy-ext/ratelimit
 ```
@@ -160,7 +163,7 @@ $ xcaddy build \
 ### Run Caddy
 
 ```bash
-$ ./caddy run --config olaf.yaml --adapter olaf
+$ ./caddy run --config Caddyfile --adapter olaf
 ```
 
 ### Reload Config
@@ -168,11 +171,11 @@ $ ./caddy run --config olaf.yaml --adapter olaf
 Don't run, just test the configuration:
 
 ```bash
-$ ./caddy adapt --config olaf.yaml --adapter olaf --validate > /dev/null
+$ ./caddy adapt --config Caddyfile --adapter olaf --validate > /dev/null
 ```
 
 Reload the configuration:
 
 ```bash
-$ ./caddy reload --config olaf.yaml --adapter olaf
+$ ./caddy reload --config Caddyfile --adapter olaf
 ```

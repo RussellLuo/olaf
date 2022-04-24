@@ -180,9 +180,7 @@ func Parse(in []byte) (*olaf.Data, error) {
 		return nil, err
 	}
 
-	c.Server.Init()
 	data := &olaf.Data{
-		Server:   c.Server,
 		Services: make(map[string]*olaf.Service),
 		Routes:   make(map[string]*olaf.Route),
 		Plugins:  make(map[string]*olaf.Plugin),
@@ -323,7 +321,6 @@ type (
 	}
 
 	content struct {
-		Server   *olaf.Server   `yaml:"server"`
 		Services []*service     `yaml:"services"`
 		Plugins  []*olaf.Plugin `yaml:"plugins"`
 	}

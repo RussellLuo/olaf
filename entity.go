@@ -17,109 +17,11 @@ var (
 	ErrUpstreamNotFound = errors.New("upstream not found")
 
 	ErrMethodNotImplemented = errors.New("method not implemented")
-
-	// A special error indicates that the data has not been modified
-	// since the given time.
-	ErrDataUnmodified = errors.New("data unmodified")
 )
 
 const (
 	PluginTypeCanary = "canary"
 )
-
-type LogOutput struct {
-	Output       string `json:"output" yaml:"output"`
-	Filename     string `json:"filename" yaml:"filename"`
-	RollDisabled bool   `json:"roll_disabled" yaml:"roll_disabled"`
-	RollSizeMB   int    `json:"roll_size_mb" yaml:"roll_size_mb"`
-	RollKeep     int    `json:"roll_keep" yaml:"roll_keep"`
-	RollKeepDays int    `json:"roll_keep_days" yaml:"roll_keep_days"`
-}
-
-func (o *LogOutput) Init() {
-	if o.Output == "" {
-		o.Output = "stderr"
-	}
-	if o.RollSizeMB == 0 {
-		o.RollSizeMB = 100
-	}
-	if o.RollKeep == 0 {
-		o.RollKeep = 10
-	}
-	if o.RollKeepDays == 0 {
-		o.RollKeepDays = 90
-	}
-}
-
-type CaddyLog struct {
-	Output LogOutput `json:"output" yaml:"output"`
-	Level  string    `json:"level" yaml:"level"`
-}
-
-func (l *CaddyLog) Init() {
-	l.Output.Init()
-	if l.Level == "" {
-		l.Level = "INFO"
-	}
-}
-
-type AccessLog struct {
-	Disabled bool `json:"disabled" yaml:"disabled"`
-	CaddyLog `yaml:",inline"`
-}
-
-func (a *AccessLog) Init() {
-	// Use `stdout` for access logs by default.
-	if a.CaddyLog.Output.Output == "" {
-		a.CaddyLog.Output.Output = "stdout"
-	}
-	a.CaddyLog.Init()
-}
-
-type Admin struct {
-	Disabled      bool     `json:"disabled" yaml:"disabled"`
-	Listen        string   `json:"listen" yaml:"listen"`
-	EnforceOrigin bool     `json:"enforce_origin" yaml:"enforce_origin"`
-	Origins       []string `json:"origins" yaml:"origins"`
-	Nonpersistent bool     `json:"nonpersistent" yaml:"nonpersistent"`
-}
-
-func (a *Admin) Init() {
-	if a.Listen == "" {
-		a.Listen = "localhost:2019"
-	}
-}
-
-type Server struct {
-	Listen          []string  `json:"listen" yaml:"listen"`
-	HTTPPort        int       `json:"http_port" yaml:"http_port"`
-	HTTPSPort       int       `json:"https_port" yaml:"https_port"`
-	EnableAutoHTTPS bool      `json:"enable_auto_https" yaml:"enable_auto_https"`
-	EnableDebug     bool      `json:"enable_debug" yaml:"enable_debug"`
-	DefaultLog      CaddyLog  `json:"default_log" yaml:"default_log"`
-	AccessLog       AccessLog `json:"access_log" yaml:"access_log"`
-	Admin           Admin     `json:"admin" yaml:"admin"`
-}
-
-func (s *Server) Init() {
-	if s == nil {
-		return
-	}
-
-	if len(s.Listen) == 0 {
-		s.Listen = []string{":6060"}
-	}
-	if s.HTTPPort == 0 {
-		s.HTTPPort = 80
-	}
-	if s.HTTPSPort == 0 {
-		s.HTTPSPort = 443
-	}
-
-	s.DefaultLog.Init()
-	s.AccessLog.Init()
-	s.Admin.Init()
-}
 
 type Service struct {
 	Name     string    `json:"name" yaml:"name"`
@@ -243,7 +145,7 @@ type PluginCanaryConfig struct {
 }
 
 type Data struct {
-	Server   *Server             `json:"server" yaml:"server"`
+	Version  string              `json:"version" yaml:"version"`
 	Services map[string]*Service `json:"services" yaml:"services"`
 	Routes   map[string]*Route   `json:"routes" yaml:"routes"`
 	Plugins  map[string]*Plugin  `json:"plugins" yaml:"plugins"`
