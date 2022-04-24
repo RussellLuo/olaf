@@ -303,7 +303,13 @@ func TestPluginCanaryExpression(t *testing.T) {
 			inServices: map[string]*olaf.Service{
 				"staging": {
 					Name: "staging",
-					URL:  "localhost:8080",
+					Upstream: &olaf.Upstream{
+						Backends: []*olaf.Backend{
+							{
+								Dial: "localhost:8080",
+							},
+						},
+					},
 				},
 			},
 			wantMatch: map[string]interface{}{
@@ -324,7 +330,13 @@ func TestPluginCanaryExpression(t *testing.T) {
 			inServices: map[string]*olaf.Service{
 				"staging": {
 					Name: "staging",
-					URL:  "localhost:8080",
+					Upstream: &olaf.Upstream{
+						Backends: []*olaf.Backend{
+							{
+								Dial: "localhost:8080",
+							},
+						},
+					},
 				},
 			},
 			wantMatch: map[string]interface{}{
@@ -345,7 +357,13 @@ func TestPluginCanaryExpression(t *testing.T) {
 			inServices: map[string]*olaf.Service{
 				"staging": {
 					Name: "staging",
-					URL:  "localhost:8080",
+					Upstream: &olaf.Upstream{
+						Backends: []*olaf.Backend{
+							{
+								Dial: "localhost:8080",
+							},
+						},
+					},
 				},
 			},
 			wantMatch: map[string]interface{}{
@@ -366,7 +384,13 @@ func TestPluginCanaryExpression(t *testing.T) {
 			inServices: map[string]*olaf.Service{
 				"staging": {
 					Name: "staging",
-					URL:  "localhost:8080",
+					Upstream: &olaf.Upstream{
+						Backends: []*olaf.Backend{
+							{
+								Dial: "localhost:8080",
+							},
+						},
+					},
 				},
 			},
 			wantMatch: map[string]interface{}{
@@ -398,18 +422,26 @@ func TestReverseProxy(t *testing.T) {
 		{
 			name: "test",
 			inService: &olaf.Service{
-				Name:        "staging",
-				URL:         "localhost:8080",
-				DialTimeout: "5s",
-				MaxRequests: 100,
-				HeaderUp: &olaf.HeaderOps{
-					Set: map[string][]string{
-						"X-Request-Id": {"123456"},
+				Name: "staging",
+				Upstream: &olaf.Upstream{
+					Backends: []*olaf.Backend{
+						{
+							Dial:        "localhost:8080",
+							MaxRequests: 100,
+						},
 					},
-				},
-				HeaderDown: &olaf.HeaderOps{
-					Add: map[string][]string{
-						"X-Server": {"Staging"},
+					HTTP: &olaf.TransportHTTP{
+						DialTimeout: "5s",
+					},
+					HeaderUp: &olaf.HeaderOps{
+						Set: map[string][]string{
+							"X-Request-Id": {"123456"},
+						},
+					},
+					HeaderDown: &olaf.HeaderOps{
+						Add: map[string][]string{
+							"X-Server": {"Staging"},
+						},
 					},
 				},
 			},

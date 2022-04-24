@@ -225,13 +225,8 @@ func Parse(in []byte) (*olaf.Data, error) {
 		}
 
 		data.Services[s.Name] = &olaf.Service{
-			Name:        s.Name,
-			Upstream:    u,
-			URL:         s.URL,
-			DialTimeout: s.DialTimeout,
-			MaxRequests: s.MaxRequests,
-			HeaderUp:    s.HeaderUp,
-			HeaderDown:  s.HeaderDown,
+			Name:     s.Name,
+			Upstream: u,
 		}
 
 		for j, r := range s.Routes { // routes associated to a service
@@ -302,13 +297,6 @@ type (
 	service struct {
 		Name     string    `yaml:"name"`
 		Upstream *upstream `yaml:"upstream"`
-
-		URL         string `yaml:"url"`
-		DialTimeout string `yaml:"dial_timeout"`
-		MaxRequests int    `yaml:"max_requests"`
-
-		HeaderUp   *olaf.HeaderOps `yaml:"header_up"`
-		HeaderDown *olaf.HeaderOps `yaml:"header_down"`
 
 		Routes  []*route       `yaml:"routes"`
 		Plugins []*olaf.Plugin `yaml:"plugins"`

@@ -26,13 +26,6 @@ const (
 type Service struct {
 	Name     string    `json:"name" yaml:"name"`
 	Upstream *Upstream `json:"upstream" yaml:"upstream"`
-
-	URL         string `json:"url" yaml:"url"`
-	DialTimeout string `json:"dial_timeout" yaml:"dial_timeout"`
-	MaxRequests int    `json:"max_requests" yaml:"max_requests"`
-
-	HeaderUp   *HeaderOps `json:"header_up" yaml:"header_up"`
-	HeaderDown *HeaderOps `json:"header_down" yaml:"header_down"`
 }
 
 type Upstream struct {

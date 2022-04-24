@@ -430,55 +430,6 @@ func parseVar(s string, p *olaf.Plugin) (v string, err error) {
 }
 
 func reverseProxy(s *olaf.Service, matcher map[string]interface{}) map[string]interface{} {
-	if s.Upstream != nil {
-		return newReverseProxy(s, matcher)
-	}
-
-	var timeout time.Duration
-	if s.DialTimeout != "" {
-		var err error
-		timeout, err = time.ParseDuration(s.DialTimeout)
-		if err != nil {
-			panic(fmt.Errorf("failed to parse dial_timeout of service %q: %v", s.Name, err))
-		}
-	}
-
-	handle := map[string]interface{}{
-		"handler": "reverse_proxy",
-		"upstreams": []map[string]interface{}{
-			buildUpstream(s.URL, s.MaxRequests),
-		},
-		"transport": map[string]interface{}{
-			"protocol":     "http",
-			"dial_timeout": timeout,
-		},
-	}
-
-	// Manipulate headers if requested.
-	headers := make(map[string]interface{})
-	if s.HeaderUp != nil {
-		headers["request"] = manipulateHeader(s.HeaderUp)
-	}
-	if s.HeaderDown != nil {
-		headers["response"] = manipulateHeader(s.HeaderDown)
-	}
-	if len(headers) > 0 {
-		handle["headers"] = headers
-	}
-
-	route := map[string]interface{}{
-		"handle": []map[string]interface{}{handle},
-	}
-
-	// Add possible matching rules.
-	if len(matcher) > 0 {
-		route["match"] = []map[string]interface{}{matcher}
-	}
-
-	return route
-}
-
-func newReverseProxy(s *olaf.Service, matcher map[string]interface{}) map[string]interface{} {
 	u := s.Upstream
 	if u == nil {
 		panic(fmt.Errorf("service %q has no upstream", s.Name))

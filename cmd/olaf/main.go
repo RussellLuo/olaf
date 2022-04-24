@@ -21,7 +21,7 @@ var (
 
 func main() {
 	flag.StringVar(&httpAddr, "addr", ":2020", "HTTP listen address")
-	flag.StringVar(&configFile, "config", "../../caddyconfig/embedded/apis.yaml", "Olaf config file")
+	flag.StringVar(&configFile, "config", "../../caddyconfig/adapter/apis.yaml", "Olaf config file")
 	flag.Parse()
 
 	store := yaml.New(configFile)
