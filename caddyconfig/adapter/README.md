@@ -124,13 +124,14 @@ example.com {
 }
 
 example.com {
-    route /* {
-        file_server
+    handle_path /api/* {
+        olaf apis.yaml
     }
 
-    route /api/* {
-        uri strip_prefix /api
-        olaf apis.yaml
+    handle {
+        root * /home/user/public_html
+        try_files {path} /index.html
+        file_server
     }
 }
 ```
